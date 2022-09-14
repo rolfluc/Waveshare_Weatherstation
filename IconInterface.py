@@ -1,4 +1,5 @@
 from genericpath import exists
+from PIL import Image
 import os
 
 from enum import Enum
@@ -53,11 +54,7 @@ class IconInterface:
         exist = self.FileExists(name)
         if(not exist):
             raise Exception(name + " file does not exist.")
-        stat = os.stat(name)
-        sze = stat.st_size
-        fle = os.open(name,os.O_RDONLY | os.O_BINARY)
-        dat = os.read(fle,sze)
-        os.close(fle)
+        dat = Image.open(name)
         return dat
 
     def DirTest(self):
