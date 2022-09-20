@@ -25,14 +25,15 @@ class Weather:
         self.precipitationTypes = ['rain','snow','ice','freezingrain']
 
         try:
-            keyfile = open("API_Key.txt","r",encoding="utf-8")
+            cwd = os.getcwd() + "\\Waveshare_Weatherstation\\"
+            keyfile = open(cwd + "API_Key.txt","r",encoding="utf-8")
             #Assumes there is one key
             for line in keyfile:
                 self.API_Key = line
             keyfile.close()
-        except:
-            keyfile.close()
-
+        except Exception as e:
+            print("Key File Missing")
+ 
     def BuildQuery(self):
         retString = ""
         retString = self.BaseURL + self.Location + self.unitString + self.parameterString + "&key=" + self.API_Key + self.contentType
@@ -46,6 +47,10 @@ class Weather:
             self.jsonData = json.loads(URL_Data)
         else:
             print("Failed to query Weather Data")
+
+    def TestViaFile(self, filename):
+        with open(filename) as f:
+            self.jsonData = json.load(f)
 
 
     def ExtractInfo(self,tmp):

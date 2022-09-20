@@ -1,5 +1,5 @@
 from cgi import test
-from turtle import setpos
+from turtle import pos, setpos
 from UIPositions import *
 from IconInterface import *
 from ScreenInterface import *
@@ -13,21 +13,29 @@ class WeatherViewer:
     WeatherData = ""
     precipitationTypes = ['rain','snow','ice','freezingrain']
     Himage = ""
+    HumidityBarWidth_px = 10
+    Humidity_SaturatedHeight_px = 100
 
     def __init__(self):
         testWorked = self.IconInterpreter.DirTest()
         if(not testWorked):
-            print("Exiting as necessary files don't")
+            print("Exiting as necessary files don't exist.")
             exit()
+
+    def DoShow(self):
+        self.Screen.DrawImage()
 
     def DoDraw(self,pos,data):
         self.Screen.DrawIcon(pos,data,False)
 
     def DoDrawText(self,pos,text):
-        self.Screen.DrawIcon(pos,text,False)
+        self.Screen.DrawText(pos,text,False)
 
     def DoDrawHumidity(self,posStart,percent):
-        self.Screen.Draw
+        endYPos = posStart.y + percent * self.Humidity_SaturatedHeight_px / 100
+        self.Screen.DrawRectangle(posStart.x-1,posStart.y-1,posStart.x+self.HumidityBarWidth_px+1,self.Humidity_SaturatedHeight_px + posStart.y +1,fillcolor="black",doDraw=False)
+        #Add a black outline
+        self.Screen.DrawRectangle(posStart.x,posStart.y,posStart.x+self.HumidityBarWidth_px,endYPos,fillcolor="blue",doDraw=False)
 
     def DisplayRain(self,position):
         setPos = self.PosInterpreter.ResolvePosition(position,SubPositions.Icon)
@@ -76,18 +84,18 @@ class WeatherViewer:
 
     def DisplayMinTemp(self,position,level):
         setPos = self.PosInterpreter.ResolvePosition(position,SubPositions.SubTemperature)
-        displayText = level + u"°C"
+        displayText = str(level) + u"°C"
         self.DoDrawText(setPos,displayText)
 
     #Acts doubly as Max temp
     def DisplayTemp(self,position,level):
         setPos = self.PosInterpreter.ResolvePosition(position,SubPositions.Temperature)
-        displayText = level + u"°C"
+        displayText = str(level) + u"°C"
         self.DoDrawText(setPos,displayText)
 
     def DisplayPrecipProbability(self,position,level):
         setPos = self.PosInterpreter.ResolvePosition(position,SubPositions.PrecipitationChance)
-        displayText = level + "%"
+        displayText = str(level) + "%"
         self.DoDrawText(setPos,displayText)
 
     #Display as a bar graph
@@ -98,17 +106,39 @@ class WeatherViewer:
     #cm expected
     def DisplaySnowAmt(self,position,level):
         setPos = self.PosInterpreter.ResolvePosition(position,SubPositions.PercipitationAmount)
-        displayText = level + "cm"
+        displayText = str(level) + "cm"
+        if(level == 0):
+            return
         self.DoDrawText(setPos,displayText)
 
     def DisplaySunData(self,position,rise,set):
         setPos = self.PosInterpreter.ResolvePosition(position,SubPositions.PercipitationAmount)
         setPos2 = self.PosInterpreter.ResolvePosition(position,SubPositions.PercipitationAmount)
-        displayText = rise
+        displayText = str(rise)
         self.DoDrawText(setPos,displayText)
-        displayText = set
+        displayText = str(set)
         self.DoDrawText(setPos2,displayText)
 
+    #todo Add Fog?
+    #todo add hail?
+    def ManageCondition(self,position,condition):
+        conidition = condition.lower()
+        if ("cloudy" in condition or "overcast" in condition):
+            self.DisplayCloudy(position)
+        elif ("snow" in conidition): #Snow intentionally before rain
+            self.DisplaySnow(position)
+        elif ("freezing" in condition):
+            if("fog" not in condition):
+                self.DisplayFreezingRain(position)
+        elif ("drizzle" in condition or "rain" in condition):
+            self.DisplayRain(position)
+        elif ("thunderstorm" in condition):
+            self.DisplayThunderstorm(position)
+        elif ("ice" in condition or "hail" in condition):
+            self.DisplayIce(position)
+        else:
+            #todo what is the logic here. We need to display clear skies, so sunny or moon.
+            self.DisplaySunny(position)
 
     def DisplayHours(self,hoursData):
         CurrentPos = Positions.Hour_0
@@ -121,13 +151,12 @@ class WeatherViewer:
             condition = curHour[2]
             snow = curHour[5]
 
-            self.DisplayTemp(Positions.Tomorrow,temperature)
-            self.DisplayHumidity(humidity)
-            self.DisplayPrecipProbability(precipitation_prob)
-            #TODO display precipitation
-            #TODO display conditions
-            #TODO selectively Display snow
-
+            self.DisplayTemp(CurrentPos,temperature)
+            self.DisplayHumidity(CurrentPos,humidity)
+            self.DisplayPrecipProbability(CurrentPos,precipitation_prob)
+            self.ManageCondition(CurrentPos,condition)
+            self.DisplaySnowAmt(CurrentPos,snow)
+            #TODO display precipitation - what to do here?
             CurrentPos = CurrentPos + 1
 
         
@@ -161,4 +190,6 @@ class WeatherViewer:
         #TODO display precipitation
         #TODO display conditions
         #TODO selectively Display snow
+        #NextDay is last displayed.
+        self.DoShow()
     

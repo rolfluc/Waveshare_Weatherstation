@@ -1,17 +1,17 @@
-from enum import Enum
+from enum import IntEnum
 from msilib.schema import Class
 
 #ScreenWIDTH       = 600
 #ScreenHEIGHT      = 448
 
-class Positions(Enum):
+class Positions(IntEnum):
     Hour_0 = 0
     Hour_1 = 1
     Hour_2 = 2
     Tomorrow = 3
     Following = 4
 
-class SubPositions(Enum):
+class SubPositions(IntEnum):
     Temperature = 0
     SubTemperature = 1
     Humidity = 2
@@ -40,7 +40,7 @@ class PositionInterpretter:
     TopRow_LeftPadding_px = 20
     TopRow_Icon_Padding_px = 40
     BottomRow_Icon_Padding_px = 120
-    HumidityWidth = 10
+    HumidityWidth = 15
     CharacterHeight_px = 25 #TODO confirm
     CharacterWidth_px = 25 #TODO confirm
     Positions_ = []
@@ -50,10 +50,17 @@ class PositionInterpretter:
     Positions_Tomorrow = [0,0,0,0,0,0,0,0,0]
     Positions_Following = [0,0,0,0,0,0,0,0,0]
     def __init__(self):
+        #Hour data
+        #temperature = tmp["temp"]
+        #precipitation = tmp["preciptype"]
+        #precipitation_prob = tmp["precipprob"]
+        #humidity = tmp["humidity"]
+        #condition = tmp["conditions"]
+        #snow = tmp["snow"]
         topDefault = self.TopPadding_px
         leftDefault = self.TopRow_LeftPadding_px
         self.Positions_Hour0[SubPositions.Temperature] = Point(leftDefault + self.IconWidth_px/2,topDefault + self.IconHeight_px + self.ElementPadding_px)
-        self.Positions_Hour0[SubPositions.SubTemperature] = Point(leftDefault + self.IconWidth_px/2,topDefault + self.IconHeight_px + self.ElementPadding_px*2 + self.HeaderHeight_px)
+        self.Positions_Hour0[SubPositions.SubTemperature] = Point(leftDefault + self.IconWidth_px/2,topDefault + self.IconHeight_px + self.ElementPadding_px*2 + self.CharacterHeight_px)
         self.Positions_Hour0[SubPositions.Humidity] = Point(leftDefault - self.HumidityWidth,topDefault)
         self.Positions_Hour0[SubPositions.Icon] = Point(leftDefault,topDefault)
         self.Positions_Hour0[SubPositions.PrecipitationChance] = Point(leftDefault + self.IconWidth_px - self.CharacterWidth_px*3,topDefault)
@@ -64,7 +71,7 @@ class PositionInterpretter:
 
         leftDefault = self.TopRow_LeftPadding_px + self.IconWidth_px + self.TopRow_Icon_Padding_px
         self.Positions_Hour1[SubPositions.Temperature] = Point(leftDefault + self.IconWidth_px/2,topDefault + self.IconHeight_px + self.ElementPadding_px)
-        self.Positions_Hour1[SubPositions.SubTemperature] = Point(leftDefault + self.IconWidth_px/2,topDefault + self.IconHeight_px + self.ElementPadding_px*2 + self.HeaderHeight_px)
+        self.Positions_Hour1[SubPositions.SubTemperature] = Point(leftDefault + self.IconWidth_px/2,topDefault + self.IconHeight_px + self.ElementPadding_px*2 + self.CharacterHeight_px)
         self.Positions_Hour1[SubPositions.Humidity] = Point(leftDefault - self.HumidityWidth,topDefault)
         self.Positions_Hour1[SubPositions.Icon] = Point(leftDefault,topDefault)
         self.Positions_Hour1[SubPositions.PrecipitationChance] = Point(leftDefault + self.IconWidth_px - self.CharacterWidth_px*3,topDefault)
@@ -75,7 +82,7 @@ class PositionInterpretter:
 
         leftDefault = self.TopRow_LeftPadding_px + self.IconWidth_px*2 + self.TopRow_Icon_Padding_px*2
         self.Positions_Hour2[SubPositions.Temperature] = Point(leftDefault + self.IconWidth_px/2,topDefault + self.IconHeight_px + self.ElementPadding_px)
-        self.Positions_Hour2[SubPositions.SubTemperature] = Point(leftDefault + self.IconWidth_px/2,topDefault + self.IconHeight_px + self.ElementPadding_px*2 + self.HeaderHeight_px)
+        self.Positions_Hour2[SubPositions.SubTemperature] = Point(leftDefault + self.IconWidth_px/2,topDefault + self.IconHeight_px + self.ElementPadding_px*2 + self.CharacterHeight_px)
         self.Positions_Hour2[SubPositions.Humidity] = Point(leftDefault - self.HumidityWidth,topDefault)
         self.Positions_Hour2[SubPositions.Icon] = Point(leftDefault,topDefault)
         self.Positions_Hour2[SubPositions.PrecipitationChance] = Point(leftDefault + self.IconWidth_px - self.CharacterWidth_px*3,topDefault)
@@ -84,10 +91,18 @@ class PositionInterpretter:
         self.Positions_Hour2[SubPositions.SunDataStop] = Point(0,0) #Not defined for hours
         self.Positions_Hour2[SubPositions.Header] = Point(leftDefault + self.IconWidth_px/2,topDefault - self.CharacterHeight_px)
 
+
+        #Day Data
+        #maxTemp = tmp["tempmax"]
+        #minTemp = tmp["tempmin"]
+        #sunrise = tmp["sunrise"]
+        #sunset = tmp["sunset"]
+        #precipitation = tmp["preciptype"]
+        #snow = tmp["snow"]
         topDefault = self.TopPadding_px + self.IconHeight_px*2
         leftDefault = self.BottomRow_Icon_Padding_px
         self.Positions_Tomorrow[SubPositions.Temperature] = Point(leftDefault + self.IconWidth_px/2,topDefault + self.IconHeight_px + self.ElementPadding_px)
-        self.Positions_Tomorrow[SubPositions.SubTemperature] = Point(leftDefault + self.IconWidth_px/2,topDefault + self.IconHeight_px + self.ElementPadding_px*2 + self.HeaderHeight_px)
+        self.Positions_Tomorrow[SubPositions.SubTemperature] = Point(leftDefault + self.IconWidth_px/2,topDefault + self.IconHeight_px + self.ElementPadding_px*2 + self.CharacterHeight_px)
         self.Positions_Tomorrow[SubPositions.Humidity] = Point(leftDefault - self.HumidityWidth,topDefault)
         self.Positions_Tomorrow[SubPositions.Icon] = Point(leftDefault,topDefault)
         self.Positions_Tomorrow[SubPositions.PrecipitationChance] = Point(leftDefault + self.IconWidth_px - self.CharacterWidth_px*3,topDefault)
@@ -98,7 +113,7 @@ class PositionInterpretter:
 
         leftDefault = self.BottomRow_Icon_Padding_px + self.IconWidth_px + self.TopRow_Icon_Padding_px
         self.Positions_Following[SubPositions.Temperature] = Point(leftDefault + self.IconWidth_px/2,topDefault + self.IconHeight_px + self.ElementPadding_px)
-        self.Positions_Following[SubPositions.SubTemperature] = Point(leftDefault + self.IconWidth_px/2,topDefault + self.IconHeight_px + self.ElementPadding_px*2 + self.HeaderHeight_px)
+        self.Positions_Following[SubPositions.SubTemperature] = Point(leftDefault + self.IconWidth_px/2,topDefault + self.IconHeight_px + self.ElementPadding_px*2 + self.CharacterHeight_px)
         self.Positions_Following[SubPositions.Humidity] = Point(leftDefault - self.HumidityWidth,topDefault)
         self.Positions_Following[SubPositions.Icon] = Point(leftDefault,topDefault)
         self.Positions_Following[SubPositions.PrecipitationChance] = Point(leftDefault + self.IconWidth_px - self.CharacterWidth_px*3,topDefault)

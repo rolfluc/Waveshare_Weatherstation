@@ -1,10 +1,9 @@
 from genericpath import exists
 from PIL import Image
 import os
+from enum import IntEnum
 
-from enum import Enum
-
-class MoonPhases(Enum):
+class MoonPhases(IntEnum):
     New = 0,
     WaxingCrescent = 1,
     FirstQuarter = 2,
@@ -26,25 +25,28 @@ class IconInterface:
     ThunderstormName = ""
     MoonPhasesNames  = ["","","","","","","",""]
     FileType = ".bmp"
+    cwd = ""
 
 
     def __init__(self):
-        self.RainName = "Rain"
-        self.SnowName = "Snow"
-        self.IceName = "Ice"
-        self.FreezingRainName = "FreezingRain"
-        self.CloudyName = "Cloudy"
-        self.SunnyName = "Sunny"
-        self.PartlyCloudyName = "PartlyCloudy"
-        self.ThunderstormName = "Thunderstorm"
-        self.MoonPhasesNames[MoonPhases.New] = "Moon_0"
-        self.MoonPhasesNames[MoonPhases.WaxingCrescent] = "Moon_1"
-        self.MoonPhasesNames[MoonPhases.FirstQuarter] = "Moon_2"
-        self.MoonPhasesNames[MoonPhases.WaxingGibbous] = "Moon_3"
-        self.MoonPhasesNames[MoonPhases.Full] = "Moon_4"
-        self.MoonPhasesNames[MoonPhases.WaningGibbous] = "Moon_5"
-        self.MoonPhasesNames[MoonPhases.LastQuarter] = "Moon_6"
-        self.MoonPhasesNames[MoonPhases.WaningCrescent] = "Moon_7"
+        self.cwd = os.getcwd() + "\\Waveshare_Weatherstation\\"
+        self.RainName = self.cwd + "Rain"
+        self.SnowName = self.cwd + "Snow"
+        self.IceName = self.cwd + "Ice"
+        self.FreezingRainName = self.cwd + "FreezingRain"
+        self.CloudyName = self.cwd + "Cloudy"
+        self.SunnyName = self.cwd + "Sunny"
+        self.PartlyCloudyName = self.cwd + "PartlyCloudy"
+        self.ThunderstormName = self.cwd + "Thunderstorm"
+        self.MoonPhasesNames[MoonPhases.New] = self.cwd + "Moon_0"
+        self.MoonPhasesNames[MoonPhases.WaxingCrescent] = self.cwd + "Moon_1"
+        self.MoonPhasesNames[MoonPhases.FirstQuarter] = self.cwd + "Moon_2"
+        self.MoonPhasesNames[MoonPhases.WaxingGibbous] = self.cwd + "Moon_3"
+        self.MoonPhasesNames[MoonPhases.Full] = self.cwd + "Moon_4"
+        self.MoonPhasesNames[MoonPhases.WaningGibbous] = self.cwd + "Moon_5"
+        self.MoonPhasesNames[MoonPhases.LastQuarter] = self.cwd + "Moon_6"
+        self.MoonPhasesNames[MoonPhases.WaningCrescent] = self.cwd + "Moon_7"
+        
 
     def FileExists(self,name):
         exist = os.path.exists(name)
