@@ -1,6 +1,7 @@
 import os
 import sys
 import io
+from pathlib import PureWindowsPath
 
 #determine if running on a Pi or not. If running on a Pi, we want to use the actual EPD firmware images.
 #if running on windows, or not a pi, run a PIL image
@@ -19,10 +20,13 @@ if osval == 'posix':
         isPi = False
 
 if isPi:
+    cwd = os.getcwd()
     picdir = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'pic')
-    libdir = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'lib')
+    libdir = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'Waveshare')
     if os.path.exists(libdir):
         sys.path.append(libdir)
+    sys.path.append(cwd + "/Waveshare/")
+    print(cwd + "/Waveshare/")
     from waveshare_epd import epd5in65f
 
 from PIL import Image,ImageDraw,ImageFont
@@ -38,8 +42,10 @@ class ScreenInterface:
     draw = ""
     #only used if not running on the pi
     buffer = ""
-
+    cwd = ""
+        
     def __init__(self):
+        self.cwd = os.getcwd() + str(PureWindowsPath("\\Waveshare_Weatherstation\\")) + "\\"
         self.Himage = Image.new('RGB', (self.EPD_WIDTH, self.EPD_HEIGHT), 0xffffff)  # 255: clear the frame
         self.font = ""
         if isPi:
@@ -49,8 +55,10 @@ class ScreenInterface:
             self.epd.Clear()
         else:
             #todo temporary:
-            #Location: C:\Windows\WinSxS\amd64_microsoft-windows-font-truetype-calibri_31bf3856ad364e35_10.0.19041.1_none_a0973ad08f2212f6
-            self.font = ImageFont.load_default()#ImageFont.truetype(r'C:\\Windows\WinSxS\\amd64_microsoft-windows-font-truetype-calibri_31bf3856ad364e35_10.0.19041.1_none_a0973ad08f2212f6\\calibri.ttf',20)
+            with open(self.cwd + "Font.txt") as f:
+                txt = f.readline()
+                fle = self.cwd + txt
+                self.font = ImageFont.truetype(fle,20)
         self.draw = ImageDraw.Draw(self.Himage)
 
     def DrawImage(self):

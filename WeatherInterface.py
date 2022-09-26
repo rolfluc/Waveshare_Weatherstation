@@ -2,6 +2,7 @@ import json
 import urllib.request
 from datetime import datetime
 import os
+from pathlib import PureWindowsPath
 
 #sample query
 #"https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/Minneapolis?unitGroup=uk&include=days%2Chours%2Ccurrent&key=________&contentType=json"
@@ -25,7 +26,7 @@ class Weather:
         self.precipitationTypes = ['rain','snow','ice','freezingrain']
 
         try:
-            cwd = os.getcwd() + "\\Waveshare_Weatherstation\\"
+            cwd = os.getcwd() + str(PureWindowsPath("\\Waveshare_Weatherstation\\")) + "\\"
             keyfile = open(cwd + "API_Key.txt","r",encoding="utf-8")
             #Assumes there is one key
             for line in keyfile:
@@ -45,6 +46,9 @@ class Weather:
         if(URL_Response.getcode() == 200):
             URL_Data = URL_Response.read()
             self.jsonData = json.loads(URL_Data)
+            #to dump to file:
+            #with open("rain.json","w") as outfile:
+            #    outfile.write(json.dumps(self.jsonData))
         else:
             print("Failed to query Weather Data")
 
@@ -53,14 +57,14 @@ class Weather:
             self.jsonData = json.load(f)
 
 
-    def ExtractInfo(self,tmp):
+    def ExtractInfo(self,tmp, hour,moonphase):
         temperature = tmp["temp"]
         precipitation = tmp["preciptype"]
         precipitation_prob = tmp["precipprob"]
         humidity = tmp["humidity"]
         condition = tmp["conditions"]
         snow = tmp["snow"]
-        return tuple((temperature,humidity,condition,precipitation,precipitation_prob,snow))
+        return tuple((temperature,humidity,condition,precipitation,precipitation_prob,snow,hour,moonphase))
 
     def ExtractNextDayInfo(self,tmp):
         maxTemp = tmp["tempmax"]
@@ -69,7 +73,9 @@ class Weather:
         sunset = tmp["sunset"]
         precipitation = tmp["preciptype"]
         snow = tmp["snow"]
-        return tuple((maxTemp,minTemp,sunrise,sunset,precipitation,snow))
+        condition = tmp["conditions"]
+        humidity = tmp["humidity"]
+        return tuple((maxTemp,minTemp,sunrise,sunset,precipitation,snow,condition,humidity))
     
     #Grabs the the next 3 slots, at 2 hour intervals
     def GetNextHourly(self):
@@ -82,11 +88,13 @@ class Weather:
         for i in range(0,3):
             data = ""
             if(now_Hour + i*2 > 23):
-                tmp = tomorrow["hours"][now_Hour + i*2 - 24]
-                data = self.ExtractInfo(tmp)
+                tme = now_Hour + i*2 - 24
+                tmp = tomorrow["hours"][tme]
+                data = self.ExtractInfo(tmp,tme,today["moonphase"])
             else:
-                tmp = today["hours"][now_Hour + i*2]
-                data = self.ExtractInfo(tmp)
+                tme = now_Hour + i*2
+                tmp = today["hours"][tme]
+                data = self.ExtractInfo(tmp,tme,today["moonphase"])
             times[i] = data
         return times
             

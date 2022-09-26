@@ -8,6 +8,8 @@ Viewer = WeatherViewer()
 
 weather = Weather()
 weather.GetNewTime()
+#weather.TestViaFile(os.getcwd() + "\\" + "sample_partly_cloudy.json")
 Viewer.DisplayHours(weather.GetNextHourly())
-Viewer.DoShow()
-#weather.GetTomorrow()
+Viewer.DisplayTomorrow(weather.GetTomorrow())
+Viewer.DisplayNextDay(weather.GetNextDay())
+

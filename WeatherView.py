@@ -1,5 +1,3 @@
-from cgi import test
-from turtle import pos, setpos
 from UIPositions import *
 from IconInterface import *
 from ScreenInterface import *
@@ -32,10 +30,12 @@ class WeatherViewer:
         self.Screen.DrawText(pos,text,False)
 
     def DoDrawHumidity(self,posStart,percent):
-        endYPos = posStart.y + percent * self.Humidity_SaturatedHeight_px / 100
-        self.Screen.DrawRectangle(posStart.x-1,posStart.y-1,posStart.x+self.HumidityBarWidth_px+1,self.Humidity_SaturatedHeight_px + posStart.y +1,fillcolor="black",doDraw=False)
+        startYPos = self.Humidity_SaturatedHeight_px + posStart.y - (percent * self.Humidity_SaturatedHeight_px / 100)
         #Add a black outline
-        self.Screen.DrawRectangle(posStart.x,posStart.y,posStart.x+self.HumidityBarWidth_px,endYPos,fillcolor="blue",doDraw=False)
+        self.Screen.DrawRectangle(posStart.x-1,posStart.y-1,posStart.x+self.HumidityBarWidth_px+1,self.Humidity_SaturatedHeight_px + posStart.y +1,fillcolor="black",doDraw=False)
+        #fill the void with white again
+        self.Screen.DrawRectangle(posStart.x,posStart.y,posStart.x+self.HumidityBarWidth_px,self.Humidity_SaturatedHeight_px + posStart.y,fillcolor="white",doDraw=False)
+        self.Screen.DrawRectangle(posStart.x,startYPos,posStart.x+self.HumidityBarWidth_px,self.Humidity_SaturatedHeight_px + posStart.y,fillcolor="blue",doDraw=False)
 
     def DisplayRain(self,position):
         setPos = self.PosInterpreter.ResolvePosition(position,SubPositions.Icon)
@@ -111,34 +111,55 @@ class WeatherViewer:
             return
         self.DoDrawText(setPos,displayText)
 
+    def DisplayFog(self,position):
+        setPos = self.PosInterpreter.ResolvePosition(position,SubPositions.Icon)
+        data = self.IconInterpreter.GetFogImage()
+        self.DoDraw(setPos,data)
+
+    def DisplayHail(self,position):
+        setPos = self.PosInterpreter.ResolvePosition(position,SubPositions.Icon)
+        data = self.IconInterpreter.GetHailImage()
+        self.DoDraw(setPos,data)
+
     def DisplaySunData(self,position,rise,set):
-        setPos = self.PosInterpreter.ResolvePosition(position,SubPositions.PercipitationAmount)
-        setPos2 = self.PosInterpreter.ResolvePosition(position,SubPositions.PercipitationAmount)
-        displayText = str(rise)
+        rise = rise[0:5] #crop the seconds off.
+        set = set[0:5]
+        setPos = self.PosInterpreter.ResolvePosition(position,SubPositions.SunDataStart)
+        setPos2 = self.PosInterpreter.ResolvePosition(position,SubPositions.SunDataStop)
+        displayText = str(rise) 
         self.DoDrawText(setPos,displayText)
-        displayText = str(set)
+        displayText = str(set) 
         self.DoDrawText(setPos2,displayText)
 
-    #todo Add Fog?
-    #todo add hail?
-    def ManageCondition(self,position,condition):
-        conidition = condition.lower()
-        if ("cloudy" in condition or "overcast" in condition):
-            self.DisplayCloudy(position)
-        elif ("snow" in conidition): #Snow intentionally before rain
+    def ManageCondition(self,position,con,hour,phase):
+        condition = con.lower()
+        if ("snow" in condition): #Snow intentionally before rain
             self.DisplaySnow(position)
+        elif ("fog" in condition): #Fog before freezing 
+            self.DisplayFog(position)
+        elif ("hail" in condition):
+            self.DisplayHail(position)
         elif ("freezing" in condition):
-            if("fog" not in condition):
-                self.DisplayFreezingRain(position)
+            self.DisplayFreezingRain(position)
         elif ("drizzle" in condition or "rain" in condition):
             self.DisplayRain(position)
         elif ("thunderstorm" in condition):
             self.DisplayThunderstorm(position)
         elif ("ice" in condition or "hail" in condition):
             self.DisplayIce(position)
+        elif("partially cloudy" in condition):
+            self.DisplayPartlyCloudy(position)
+        elif ("cloudy" in condition or "overcast" in condition):
+            self.DisplayCloudy(position)
         else:
-            #todo what is the logic here. We need to display clear skies, so sunny or moon.
-            self.DisplaySunny(position)
+            if(phase == -1): #Day Condition -1 is not a valid phase
+                self.DisplaySunny(position)
+            else:
+                if(hour < 6 or hour > 20):
+                    self.DisplayMoon(position,phase)
+                else:
+                    self.DisplaySunny(position)
+            
 
     def DisplayHours(self,hoursData):
         CurrentPos = Positions.Hour_0
@@ -150,46 +171,43 @@ class WeatherViewer:
             humidity = curHour[1]
             condition = curHour[2]
             snow = curHour[5]
+            hour = curHour[6]
+            moonphase = curHour[7]
 
+            #Display Condition first always
+            self.ManageCondition(CurrentPos,condition,hour,moonphase)
             self.DisplayTemp(CurrentPos,temperature)
             self.DisplayHumidity(CurrentPos,humidity)
             self.DisplayPrecipProbability(CurrentPos,precipitation_prob)
-            self.ManageCondition(CurrentPos,condition)
             self.DisplaySnowAmt(CurrentPos,snow)
             #TODO display precipitation - what to do here?
             CurrentPos = CurrentPos + 1
 
+    def DisplayDay(self,tmrDat,position):
+        maxTemp = tmrDat[0]
+        minTemp = tmrDat[1]
+        sunrise = tmrDat[2]
+        sunset = tmrDat[3]
+        precipitation = tmrDat[4]
+        snow = tmrDat[5]
+        condition = tmrDat[6]
+        humidity = tmrDat[7]
+
+        #Display Condition first always
+        self.ManageCondition(position,condition,0,-1)
+        self.DisplayTemp(position,maxTemp)
+        self.DisplayMinTemp(position,minTemp)
+        self.DisplaySunData(position,sunrise,sunset)
+        self.DisplayHumidity(position,humidity)
+        #TODO display precipitation
+        #TODO display conditions
+        #TODO selectively Display snow
+
         
     def DisplayTomorrow(self,tmrDat):
-        maxTemp = tmrDat[0]
-        minTemp = tmrDat[1]
-        sunrise = tmrDat[2]
-        sunset = tmrDat[3]
-        precipitation = tmrDat[4]
-        snow = tmrDat[5]
-
-        self.DisplayTemp(Positions.Tomorrow,maxTemp)
-        self.DisplayMinTemp(Positions.Tomorrow,minTemp)
-        self.DisplaySunData(Positions.Tomorrow,sunrise,sunset)
-
-        #TODO display precipitation
-        #TODO display conditions
-        #TODO selectively Display snow
+        self.DisplayDay(tmrDat,Positions.Tomorrow)
     
     def DisplayNextDay(self,tmrDat):
-        maxTemp = tmrDat[0]
-        minTemp = tmrDat[1]
-        sunrise = tmrDat[2]
-        sunset = tmrDat[3]
-        precipitation = tmrDat[4]
-        snow = tmrDat[5]
-
-        self.DisplayTemp(Positions.Tomorrow,maxTemp)
-        self.DisplayMinTemp(Positions.Tomorrow,minTemp)
-        self.DisplaySunData(Positions.Tomorrow,sunrise,sunset)
-        #TODO display precipitation
-        #TODO display conditions
-        #TODO selectively Display snow
-        #NextDay is last displayed.
+        self.DisplayDay(tmrDat,Positions.Following)
         self.DoShow()
     

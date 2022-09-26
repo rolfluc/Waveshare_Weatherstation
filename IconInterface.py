@@ -1,7 +1,7 @@
-from genericpath import exists
 from PIL import Image
 import os
 from enum import IntEnum
+from pathlib import PureWindowsPath
 
 class MoonPhases(IntEnum):
     New = 0,
@@ -23,13 +23,15 @@ class IconInterface:
     SunnyName = ""
     PartlyCloudyName = ""
     ThunderstormName = ""
+    HailName = ""
+    FogName = ""
     MoonPhasesNames  = ["","","","","","","",""]
     FileType = ".bmp"
     cwd = ""
 
 
     def __init__(self):
-        self.cwd = os.getcwd() + "\\Waveshare_Weatherstation\\"
+        self.cwd = os.getcwd() + str(PureWindowsPath("\\Waveshare_Weatherstation\\")) + "\\"
         self.RainName = self.cwd + "Rain"
         self.SnowName = self.cwd + "Snow"
         self.IceName = self.cwd + "Ice"
@@ -38,6 +40,8 @@ class IconInterface:
         self.SunnyName = self.cwd + "Sunny"
         self.PartlyCloudyName = self.cwd + "PartlyCloudy"
         self.ThunderstormName = self.cwd + "Thunderstorm"
+        self.HailName = self.cwd + "Hail"
+        self.FogName = self.cwd + "Fog"
         self.MoonPhasesNames[MoonPhases.New] = self.cwd + "Moon_0"
         self.MoonPhasesNames[MoonPhases.WaxingCrescent] = self.cwd + "Moon_1"
         self.MoonPhasesNames[MoonPhases.FirstQuarter] = self.cwd + "Moon_2"
@@ -61,7 +65,7 @@ class IconInterface:
 
     def DirTest(self):
         retVal = True
-        files = [self.RainName,self.SnowName,self.IceName,self.FreezingRainName,self.CloudyName,self.SunnyName,self.PartlyCloudyName,self.ThunderstormName]
+        files = [self.RainName,self.SnowName,self.IceName,self.FreezingRainName,self.CloudyName,self.SunnyName,self.PartlyCloudyName,self.ThunderstormName,self.FogName,self.HailName]
         for each in self.MoonPhasesNames:
             files.append(each)
         for each in files:
@@ -95,7 +99,27 @@ class IconInterface:
     def GetThunderstormImage(self):
         return self.ReadFile(self.ThunderstormName + self.FileType)
 
-    def GetMoonImage(self, tbdInput):
-        #TODO input is not defined in terms of what will be passed here.
-        return self.ReadFile(self.MoonPhasesNames[MoonPhases.Full] + self.FileType)
+    def GetMoonImage(self, phaseFloat):
+        if(phaseFloat == 0):
+            return self.ReadFile(self.MoonPhasesNames[MoonPhases.New] + self.FileType)
+        elif(phaseFloat < 0.25):
+            return self.ReadFile(self.MoonPhasesNames[MoonPhases.WaxingCrescent] + self.FileType)
+        elif(phaseFloat == 0.25):
+            return self.ReadFile(self.MoonPhasesNames[MoonPhases.FirstQuarter] + self.FileType)
+        elif(phaseFloat < 0.5):
+            return self.ReadFile(self.MoonPhasesNames[MoonPhases.WaxingGibbous] + self.FileType)
+        elif(phaseFloat == 0.5):
+            return self.ReadFile(self.MoonPhasesNames[MoonPhases.Full] + self.FileType)
+        elif(phaseFloat < 0.75):
+            return self.ReadFile(self.MoonPhasesNames[MoonPhases.WaningGibbous] + self.FileType)
+        elif(phaseFloat == 0.75):
+            return self.ReadFile(self.MoonPhasesNames[MoonPhases.LastQuarter] + self.FileType)
+        else:
+            return self.ReadFile(self.MoonPhasesNames[MoonPhases.WaningCrescent] + self.FileType)
+        
 
+    def GetHailImage(self):
+        return self.ReadFile(self.HailName + self.FileType)
+
+    def GetFogImage(self):
+        return self.ReadFile(self.FogName + self.FileType)
