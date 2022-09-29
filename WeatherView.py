@@ -20,6 +20,9 @@ class WeatherViewer:
             print("Exiting as necessary files don't exist.")
             exit()
 
+    def DoSleep(self):
+        self.Screen.SleepScreen()
+
     def DoShow(self):
         self.Screen.DrawImage()
 
@@ -112,12 +115,12 @@ class WeatherViewer:
         self.DoDrawText(setPos,displayText)
 
     def DisplayFog(self,position):
-        setPos = self.PosInterpreter.ResolvePosition(position,SubPositions.Icon)
+        setPos = self.PosInterpreter.ResolvePosition(position,SubPositions.icon)
         data = self.IconInterpreter.GetFogImage()
         self.DoDraw(setPos,data)
 
     def DisplayHail(self,position):
-        setPos = self.PosInterpreter.ResolvePosition(position,SubPositions.Icon)
+        setPos = self.PosInterpreter.ResolvePosition(position,SubPositions.icon)
         data = self.IconInterpreter.GetHailImage()
         self.DoDraw(setPos,data)
 
@@ -131,9 +134,13 @@ class WeatherViewer:
         displayText = str(set) 
         self.DoDrawText(setPos2,displayText)
 
-    def ManageCondition(self,position,con,hour,phase):
-        condition = con.lower()
-        if ("snow" in condition): #Snow intentionally before rain
+    def ManageCondition(self,position,condition,hour,phase):
+        conidition = condition.lower()
+        if("partly cloudy" in condition):
+            self.DisplayPartlyCloudy(position)
+        elif ("cloudy" in condition or "overcast" in condition):
+            self.DisplayCloudy(position)
+        elif ("snow" in conidition): #Snow intentionally before rain
             self.DisplaySnow(position)
         elif ("fog" in condition): #Fog before freezing 
             self.DisplayFog(position)
@@ -147,10 +154,6 @@ class WeatherViewer:
             self.DisplayThunderstorm(position)
         elif ("ice" in condition or "hail" in condition):
             self.DisplayIce(position)
-        elif("partially cloudy" in condition):
-            self.DisplayPartlyCloudy(position)
-        elif ("cloudy" in condition or "overcast" in condition):
-            self.DisplayCloudy(position)
         else:
             if(phase == -1): #Day Condition -1 is not a valid phase
                 self.DisplaySunny(position)

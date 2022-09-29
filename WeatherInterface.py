@@ -3,6 +3,7 @@ import urllib.request
 from datetime import datetime
 import os
 from pathlib import PureWindowsPath
+from IsPy import *
 
 #sample query
 #"https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/Minneapolis?unitGroup=uk&include=days%2Chours%2Ccurrent&key=________&contentType=json"
@@ -26,7 +27,11 @@ class Weather:
         self.precipitationTypes = ['rain','snow','ice','freezingrain']
 
         try:
-            cwd = os.getcwd() + str(PureWindowsPath("\\Waveshare_Weatherstation\\")) + "\\"
+            cwd = ""
+            if IsPi():
+                cwd = os.getcwd() + "/"
+            else:
+                cwd = os.getcwd() + str(PureWindowsPath("\\Waveshare_Weatherstation\\")) + "\\"
             keyfile = open(cwd + "API_Key.txt","r",encoding="utf-8")
             #Assumes there is one key
             for line in keyfile:
@@ -46,9 +51,6 @@ class Weather:
         if(URL_Response.getcode() == 200):
             URL_Data = URL_Response.read()
             self.jsonData = json.loads(URL_Data)
-            #to dump to file:
-            #with open("rain.json","w") as outfile:
-            #    outfile.write(json.dumps(self.jsonData))
         else:
             print("Failed to query Weather Data")
 

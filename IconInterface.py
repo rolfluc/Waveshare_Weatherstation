@@ -2,6 +2,9 @@ from PIL import Image
 import os
 from enum import IntEnum
 from pathlib import PureWindowsPath
+from IsPy import *
+
+isPi = IsPi()
 
 class MoonPhases(IntEnum):
     New = 0,
@@ -31,7 +34,12 @@ class IconInterface:
 
 
     def __init__(self):
-        self.cwd = os.getcwd() + str(PureWindowsPath("\\Waveshare_Weatherstation\\")) + "\\"
+        self.cwd = "" 
+        if isPi:
+            self.cwd = os.getcwd() + "/"
+        else:
+            self.cwd = os.getcwd() + str(PureWindowsPath("\\Waveshare_Weatherstation\\")) + "\\"
+
         self.RainName = self.cwd + "Rain"
         self.SnowName = self.cwd + "Snow"
         self.IceName = self.cwd + "Ice"
