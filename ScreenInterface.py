@@ -60,18 +60,6 @@ class ScreenInterface:
         else:
             self.Himage.show()
 
-    def DrawRectangle(self,x,y,x_2,y_2,fillcolor,doDraw):
-        rect = ImageDraw.Draw(self.Himage)
-        rect.rectangle((x, y, x_2, y_2), fill = fillcolor)
-        #if isPi:
-        #    self.draw.rectangle((x, y, x_2, y_2), fill = fillcolor)
-        #else:
-        #    rect = ImageDraw.Draw(self.Himage)
-        #    rect.rectangle((x, y, x_2, y_2), fill = fillcolor)
-        if doDraw:
-            self.DrawImage()
-
-
     def DrawIcon(self,position,dataBuffer, doDraw):
         #TODO this is not defined. Examples show how to do a full image, not a 
         #epd.display(epd.getbuffer(Himage))
@@ -85,14 +73,4 @@ class ScreenInterface:
         #    self.Himage.paste(dataBuffer,box=(position.x,position.y))
         if doDraw:
             self.DrawImage()
-
-    def DrawText(self,position,input, doDraw):
-        self.draw.text(xy=(position.x,position.y),text=input,font=self.font,align="center",fill="black")
-        #if isPi:
-        #    self.draw.text(position, input, font = self.font, fill = self.epd.BLACK)
-        if(doDraw):
-            self.DrawImage()
-        #else:
-        #    self.draw.text(xy=(position.x,position.y),text=input,font=self.font,align="center",fill="black")
-        #    if doDraw:
-        #        self.DrawImage()
+            

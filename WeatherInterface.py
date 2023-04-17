@@ -47,10 +47,15 @@ class Weather:
     
     def GetNewTime(self):
         query = self.BuildQuery()
-        URL_Response = urllib.request.urlopen(query)
+        try:
+            URL_Response = urllib.request.urlopen(query)
+        except:
+            print("URL Request failed")
         if(URL_Response.getcode() == 200):
             URL_Data = URL_Response.read()
             self.jsonData = json.loads(URL_Data)
+            #with open("snow_real.json", "w") as outfile:
+            #    json.dump(self.jsonData,outfile)
         else:
             print("Failed to query Weather Data")
 
@@ -59,56 +64,45 @@ class Weather:
             self.jsonData = json.load(f)
 
 
-    def ExtractInfo(self,tmp, hour,moonphase):
-        temperature = tmp["temp"]
-        precipitation = tmp["preciptype"]
-        precipitation_prob = tmp["precipprob"]
-        humidity = tmp["humidity"]
-        condition = tmp["conditions"]
-        snow = tmp["snow"]
-        return tuple((temperature,humidity,condition,precipitation,precipitation_prob,snow,hour,moonphase))
+    def ExtractInfo(self,hourData,hourIndex):
+        temperature = hourData["temp"]
+        precipitation = hourData["preciptype"]
+        precipitation_prob = hourData["precipprob"]
+        humidity = hourData["humidity"]
+        condition = hourData["conditions"]
+        snow = hourData["snow"]
+        return tuple((temperature,humidity,condition,precipitation,precipitation_prob,snow,hourIndex))
 
-    def ExtractNextDayInfo(self,tmp):
-        maxTemp = tmp["tempmax"]
-        minTemp = tmp["tempmin"]
-        sunrise = tmp["sunrise"]
-        sunset = tmp["sunset"]
-        precipitation = tmp["preciptype"]
-        snow = tmp["snow"]
-        condition = tmp["conditions"]
-        humidity = tmp["humidity"]
-        return tuple((maxTemp,minTemp,sunrise,sunset,precipitation,snow,condition,humidity))
+    def GetHourly(self,day,next,isToday):
+        times  = list()
+        if(isToday):
+            now_Hour = datetime.now().time().hour
+            for hourIndex in range(now_Hour,24):
+                hourData = day["hours"][hourIndex]
+                tupleDat = self.ExtractInfo(hourData,hourIndex)
+                times.append(tupleDat)
+            for hourIndex in range(0,now_Hour):
+                hourData = next["hours"][hourIndex]
+                times.append(self.ExtractInfo(hourData,hourIndex))
+        else:
+            for hourIndex in range(0,24):
+                hourData = day["hours"][hourIndex]
+                times.append(self.ExtractInfo(hourData,hourIndex))
+        rise = day["sunrise"]
+        set = day["sunset"]
+        dayDat = tuple((rise,set))
+        return tuple((dayDat,times))
     
-    #Grabs the the next 3 slots, at 2 hour intervals
-    def GetNextHourly(self):
-        times = ["","",""]
+    def GetDay(self,dayIndex):
         days = self.jsonData["days"]
-        today = days[0]
-        tomorrow = days[1]
-        now_Hour = datetime.now().time().hour
+        return self.GetHourly(days[dayIndex],days[dayIndex+1],dayIndex==0)
 
-        for i in range(0,3):
-            data = ""
-            if(now_Hour + i*2 > 23):
-                tme = now_Hour + i*2 - 24
-                tmp = tomorrow["hours"][tme]
-                data = self.ExtractInfo(tmp,tme,today["moonphase"])
-            else:
-                tme = now_Hour + i*2
-                tmp = today["hours"][tme]
-                data = self.ExtractInfo(tmp,tme,today["moonphase"])
-            times[i] = data
-        return times
+    def GetToday(self):
+        return self.GetDay(0)
             
     def GetTomorrow(self):
-        days = self.jsonData["days"]
-        tomorrow = days[1]
-        dayInfo = self.ExtractNextDayInfo(tomorrow)
-        return dayInfo
+        return self.GetDay(1)
 
     def GetNextDay(self):
-        days = self.jsonData["days"]
-        nextDay = days[2]
-        dayInfo = self.ExtractNextDayInfo(nextDay)
-        return dayInfo
+        return self.GetDay(2)
     
