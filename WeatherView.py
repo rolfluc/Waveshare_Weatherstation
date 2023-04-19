@@ -242,17 +242,21 @@ class WeatherViewer:
         #TODO get the slope of the line between [0] + 1, and end + end+1, and draw the y to that point, as a percentage of the additional.
         additionalXRise = riseTime - int(riseTime)
         additionalXSet = setTime - int(setTime)
-
-
         additionalYRise = 0
         additionalYSet = 0
-        
+
+        minY = min(yDat)
+        maxY = max(yDat)
+        delta = maxY - minY
 
         if(len(plotX) > 1):
             if(displayBoth is True):
-                graph.plot([plotX[0] + additionalXRise, plotX[0] + additionalXRise], [plotY[0] + additionalYRise, min(yDat)],'k-', color=self.color_orange,scaley = False) 
-            graph.plot([plotX[len(plotX)-1] + additionalXSet, plotX[len(plotX)-1] + additionalXSet], [plotY[len(plotY)-1] + additionalYSet, min(yDat)],'k-', color=self.color_orange, scaley = False) 
-        
+                yTarget = (abs(plotY[0]) + additionalYRise - minY) / delta
+                graph.axvline(x=plotX[0]+ additionalXRise, ymin=0, ymax=yTarget,color=self.color_orange)
+                #graph.plot([plotX[0] + additionalXRise, plotX[0] + additionalXRise], [plotY[0] + additionalYRise, min(yDat)],'k-', color=self.color_orange,scaley = False) 
+            yTarget = (abs(plotY[len(plotY)-1]) + additionalYSet - minY) / delta
+            graph.axvline(x=plotX[len(plotX)-1] + additionalXSet, ymin=0, ymax=yTarget,color=self.color_orange)
+            #graph.plot([plotX[len(plotX)-1] + additionalXSet, plotX[len(plotX)-1] + additionalXSet], [plotY[len(plotY)-1] + additionalYSet, min(yDat)],'k-', color=self.color_orange, scaley = False) 
 
     def DisplayToday(self,hoursData):
         self.DisplayDay(hoursData,self.today)
@@ -299,7 +303,7 @@ class WeatherViewer:
         self.fig.align_labels()
         #plt.show()
 
-    def PrepareForScreen(self):
+    def SendToScreen(self):
         # Save figure
         dpi = 100 # set desired dpi (dots per inch)
         width_px,height_px=(600,400) # set desired figure size in pixels (width,height)
