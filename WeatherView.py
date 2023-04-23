@@ -247,14 +247,14 @@ class WeatherViewer:
         maxY = max(yDat)
         delta = maxY - minY
 
-        additionalYRise = ((plotY[1] - plotY[0]) / delta) * additionalXRise
-        additionalYSet = ((plotY[len(plotY)-2] - plotY[len(plotY)-1]) / delta) * additionalXSet
+        additionalYRise = ((plotY[1] - plotY[0]) / delta) * additionalXRise/2
+        additionalYSet = ((plotY[len(plotY)-2] - plotY[len(plotY)-1]) / delta) * additionalXSet/2
 
         if(len(plotX) > 1):
             if(displayBoth is True):
-                yTarget = (abs(plotY[0]) + additionalYRise - abs(minY)) / delta
+                yTarget = (abs(plotY[0]) + additionalYRise - minY) / delta
                 graph.axvline(x=plotX[0]+ additionalXRise, ymin=0, ymax=yTarget,color=self.color_orange)
-            yTarget = (abs(plotY[len(plotY)-1]) + additionalYSet - abs(minY)) / delta
+            yTarget = (abs(plotY[len(plotY)-1]) + additionalYSet - minY) / delta
             graph.axvline(x=plotX[len(plotX)-1] + additionalXSet, ymin=0, ymax=yTarget,color=self.color_orange)
 
     def DisplayToday(self,hoursData):
