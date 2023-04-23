@@ -86,9 +86,6 @@ class WeatherViewer:
     def DoDrawText(self,pos,text):
         self.Screen.DrawText(pos,text,False)
 
-    def DoDrawHumidity(self,posStart,percent):
-        a = 0
-
     def DisplayRain(self,position):
         setPos = 0
         
@@ -101,27 +98,7 @@ class WeatherViewer:
     def DisplayFreezingRain(self,position):
         setPos = 0
 
-    def DisplayCloudy(self,position):
-        setPos = 0
-
-    def DisplaySunny(self,position):
-        setPos = 0
-
-    def DisplayPartlyCloudy(self,position):
-        setPos = 0
-    
     def DisplayThunderstorm(self,position):
-        setPos = 0
-
-    def DisplayPrecipProbability(self,position,level):
-        setPos = 0
-
-    #Display as a bar graph
-    def DisplayHumidity(self,position,level):
-        setPos = 0
-
-    #cm expected
-    def DisplaySnowAmt(self,position,level):
         setPos = 0
 
     def DisplayFog(self,position):
@@ -130,38 +107,59 @@ class WeatherViewer:
     def DisplayHail(self,position):
         setPos = 0
 
-    def DisplaySunData(self,position,rise,set):
-        rise = rise[0:5] #crop the seconds off.
-        set = set[0:5]
-
-    def ManageCondition(self,position,condition,hour,phase):
-        condition = condition.lower()
-        #if ("snow" in condition): #Snow intentionally before rain
-        #    self.DisplaySnow(position)
-        #elif ("hail" in condition):
-        #    self.DisplayHail(position)
-        #elif ("freezing" in condition):
-        #    self.DisplayFreezingRain(position)
-        #elif ("drizzle" in condition or "rain" in condition):
-        #    self.DisplayRain(position)
-        #elif ("thunderstorm" in condition):
-        #    self.DisplayThunderstorm(position)
-        #elif ("ice" in condition or "hail" in condition):
-        #    self.DisplayIce(position)
-        #elif ("fog" in condition): #Fog before freezing 
-        #    self.DisplayFog(position)
-        #elif("partly cloudy" in condition):
-        #    self.DisplayPartlyCloudy(position)
-        #elif ("cloudy" in condition or "overcast" in condition):
-        #    self.DisplayCloudy(position)
-        #else:
-        #    if(phase == -1): #Day Condition -1 is not a valid phase
-        #        self.DisplaySunny(position)
-        #    else:
-        #        if(hour < 6 or hour > 20):
-        #            self.DisplayMoon(position,phase)
-        #        else:
-        #            self.DisplaySunny(position)
+    def DisplayCondition(self,graph,conditionArray,yDat):
+        yTarget = 0.5
+        isOpen = False
+        yDelta = max(yDat) - min(yDat)
+        trackingCondition = ''
+        conditionXPositions = []*0
+        conditionYPositions = []*0
+        for index in range(0,len(conditionArray)):
+            condFound = False
+            condition = conditionArray[index]
+            if ("snow" in condition): #Snow intentionally before rain
+                condFound = True
+                self.DisplaySnow(graph)
+            elif ("hail" in condition):
+                condFound = True
+                self.DisplayHail(graph)
+            elif ("freezing" in condition):
+                condFound = True
+                self.DisplayFreezingRain(graph)
+            elif ("drizzle" in condition or "rain" in condition):
+                condFound = True
+                self.DisplayRain(graph)
+            elif ("thunderstorm" in condition):
+                condFound = True
+                self.DisplayThunderstorm(graph)
+            elif ("ice" in condition or "hail" in condition):
+                condFound = True
+                self.DisplayIce(graph)
+            elif ("fog" in condition): 
+                condFound = True
+                self.DisplayFog(graph)
+            if(condFound):
+                conditionXPositions.append(index)
+                if(not isOpen):
+                    #found a condition, and not currently tracking a condition
+                    isOpen = True
+                    graph.axvline(x=index, ymin=min(((yDat[index]-min(yDat)) / yDelta) + 0.025,0.95), ymax=1,color=self.color_blue)
+                #otherwise, we want to add the other y axis
+            else:
+                if(isOpen):
+                    #no longer seeing the condition, drop out
+                    isOpen = False
+                    graph.axvline(x=index, ymin=min(((yDat[index]-min(yDat)) / yDelta) + 0.025,0.95), ymax=1,color=self.color_blue)
+                    conditionXPositions.append(index)
+                # If no condition found, and not tracking one, no worries!
+        #if didn't close the last one, end here:
+        if(isOpen):
+            graph.axvline(x=len(conditionArray)-1, ymin=min(((yDat[len(conditionArray)-1]-min(yDat)) / yDelta) + 0.025,0.95), ymax=1,color=self.color_blue)
+        # now draw
+        for xpos in conditionXPositions:
+            conditionYPositions.append(yDat[xpos])
+        graph.fill_between(conditionXPositions, conditionYPositions, max(yDat), facecolor=self.color_green, alpha=0.5)   
+                    
 
     def GetMinMax(self,hoursData):
         minVal = 200
@@ -263,7 +261,7 @@ class WeatherViewer:
     def DisplayDay(self,hoursData,graph):
         tempDat = np.zeros(dtype=np.float64,shape=len(hoursData[1]))
         humidDat = np.zeros(dtype=np.int8,shape=len(hoursData[1]))
-        #conditionDat = np.empty(dtype='s256',shape=len(hoursData[1]))
+        conditionDat = np.empty(dtype=object,shape=len(hoursData[1]))
         precipPercentDat = np.zeros(dtype=np.int8,shape=len(hoursData[1]))
         xAxis = [None] * 24
         xLabels = [None] * 24
@@ -272,7 +270,7 @@ class WeatherViewer:
         for x in range(0,len(hoursData[1])):
             tempDat[x] = hoursData[1][x][0]
             humidDat[x] = hoursData[1][x][1]
-            #conditionDat[x] = hoursData[1][x][2]
+            conditionDat[x] = hoursData[1][x][2].lower()
             precipPercentDat[x] = hoursData[1][x][4]
             xAxis[xIndex] = hoursData[1][x][6]
             if x % 4 == 0:
@@ -291,7 +289,8 @@ class WeatherViewer:
         graph.set_xticks(range(len(xAxis)))
         graph.set_xticklabels(xLabels)
         self.PlotSunData(graph,hoursData[0][0], hoursData[0][1],xAxis,tempDat)
-        graph.plot(tempDat, color=self.color_blue)
+        self.DisplayCondition(graph,conditionDat,tempDat)
+        graph.plot(tempDat, color=self.color_red)
         
     def DisplayTomorrow(self,tmrDat):
         self.DisplayDay(tmrDat,self.tomorrowGraph)
