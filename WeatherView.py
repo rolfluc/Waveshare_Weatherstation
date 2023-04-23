@@ -144,17 +144,26 @@ class WeatherViewer:
                     #found a condition, and not currently tracking a condition
                     isOpen = True
                     graph.axvline(x=index, ymin=min(((yDat[index]-min(yDat)) / yDelta) + 0.025,0.95), ymax=1,color=self.color_blue)
+                    #graph.axvline(x=index, ymin=min(((yDat[index]-min(yDat)) / yDelta),0.95), ymax=1,color=self.color_blue)
                 #otherwise, we want to add the other y axis
             else:
                 if(isOpen):
                     #no longer seeing the condition, drop out
                     isOpen = False
-                    graph.axvline(x=index, ymin=min(((yDat[index]-min(yDat)) / yDelta) + 0.025,0.95), ymax=1,color=self.color_blue)
                     conditionXPositions.append(index)
+                    graph.axvline(x=index, ymin=min(((yDat[index]-min(yDat)) / yDelta) + 0.025,0.95), ymax=1,color=self.color_blue)
+                    #graph.axvline(x=index, ymin=min(((yDat[index]-min(yDat)) / yDelta),0.95), ymax=1,color=self.color_blue)
+                    for xpos in conditionXPositions:
+                        conditionYPositions.append(yDat[xpos])
+                    #draw existing shading, reset
+                    graph.fill_between(conditionXPositions, conditionYPositions, max(yDat), facecolor=self.color_green, alpha=0.5)   
+                    conditionXPositions = []*0
+                    conditionYPositions = []*0
                 # If no condition found, and not tracking one, no worries!
         #if didn't close the last one, end here:
         if(isOpen):
-            graph.axvline(x=len(conditionArray)-1, ymin=min(((yDat[len(conditionArray)-1]-min(yDat)) / yDelta) + 0.025,0.95), ymax=1,color=self.color_blue)
+            graph.axvline(x=len(conditionArray)-1, ymin=min(((yDat[len(conditionArray)-1]-min(yDat)) / yDelta),0.95), ymax=1,color=self.color_blue)
+            #graph.axvline(x=len(conditionArray)-1, ymin=min(((yDat[len(conditionArray)-1]-min(yDat)) / yDelta) + 0.025,0.95), ymax=1,color=self.color_blue)
         # now draw
         for xpos in conditionXPositions:
             conditionYPositions.append(yDat[xpos])

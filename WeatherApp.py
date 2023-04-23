@@ -6,7 +6,7 @@ Viewer = WeatherViewer()
 
 weather = Weather()
 weather.GetNewTime()
-weather.TestViaFile("sample_snow.json")
+#weather.TestViaFile("sample_snow.json")
 Viewer.DisplayToday(weather.GetToday())
 Viewer.DisplayTomorrow(weather.GetTomorrow())
 Viewer.DisplayNextDay(weather.GetNextDay())
