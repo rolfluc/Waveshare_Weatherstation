@@ -7,6 +7,7 @@ import numpy as np
 from datetime import datetime
 from PIL import Image
 import io
+from Dither import *
 
 class WeatherViewer:
     PosInterpreter = PositionInterpretter()
@@ -156,7 +157,7 @@ class WeatherViewer:
                     for xpos in conditionXPositions:
                         conditionYPositions.append(yDat[xpos])
                     #draw existing shading, reset
-                    graph.fill_between(conditionXPositions, conditionYPositions, max(yDat), facecolor=self.color_green, alpha=0.5)   
+                    graph.fill_between(conditionXPositions, conditionYPositions, max(yDat), facecolor=self.color_blue, alpha=0.5)   
                     conditionXPositions = []*0
                     conditionYPositions = []*0
                 # If no condition found, and not tracking one, no worries!
@@ -167,7 +168,7 @@ class WeatherViewer:
         # now draw
         for xpos in conditionXPositions:
             conditionYPositions.append(yDat[xpos])
-        graph.fill_between(conditionXPositions, conditionYPositions, max(yDat), facecolor=self.color_green, alpha=0.5)   
+        graph.fill_between(conditionXPositions, conditionYPositions, max(yDat), facecolor=self.color_blue, alpha=0.5)
                     
 
     def GetMinMax(self,hoursData):
@@ -260,9 +261,9 @@ class WeatherViewer:
         if(len(plotX) > 1):
             if(displayBoth is True):
                 yTarget = (abs(plotY[0]) + additionalYRise - minY) / delta
-                graph.axvline(x=plotX[0]+ additionalXRise, ymin=0, ymax=yTarget,color=self.color_orange)
+                graph.axvline(x=plotX[0]+ additionalXRise, ymin=0, ymax=max(yTarget,0.025),color=self.color_orange)
             yTarget = (abs(plotY[len(plotY)-1]) + additionalYSet - minY) / delta
-            graph.axvline(x=plotX[len(plotX)-1] + additionalXSet, ymin=0, ymax=yTarget,color=self.color_orange)
+            graph.axvline(x=plotX[len(plotX)-1] + additionalXSet, ymin=0, ymax=max(yTarget,0.025),color=self.color_orange)
 
     def DisplayToday(self,hoursData):
         self.DisplayDay(hoursData,self.today)
@@ -311,13 +312,20 @@ class WeatherViewer:
         #plt.show()
 
     def SendToScreen(self):
-        # Save figure
+        # Save figure, with specific DPI and size
         dpi = 100 # set desired dpi (dots per inch)
         width_px,height_px=(600,400) # set desired figure size in pixels (width,height)
         self.fig.set_size_inches(width_px/dpi,height_px/dpi) # convert pixel dimensions to inches and set figure size accordingly
+
+        #do image conversion
         imageBuffer = io.BytesIO()
-        plt.savefig(imageBuffer, dpi=dpi, format='jpeg') # save figure as png with specified dpi
+        #plt.show()
+        plt.savefig(imageBuffer, dpi=dpi, format='png') 
         im = Image.open(imageBuffer)
-        #todo maybe dither here.
+        #bmpim = Image.frombytes('RGB',self.fig.canvas.get_width_height(),self.fig.canvas.tostring_rgb())
+        #im = bmpim
+        
         self.Screen.DrawIcon((Point(0,0)),im,True)
+        ApplyDither(im)
+        im.show()
         
