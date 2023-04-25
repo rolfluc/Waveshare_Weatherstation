@@ -236,6 +236,8 @@ def SierraDithering(image):
                         upPix = image.getpixel((subX+x-1,y+2))
                         image.putpixel((subX+x-1,y+2),ApplyError(upPix,err,row2Mults[subX]))
 
+
+#Temporary, for comparisons' sake
 i = 0
 
 def ApplyDither(image):
