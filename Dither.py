@@ -23,11 +23,6 @@ def ApplyError(pixelVal, quanterr, mult):
     applied = [quanterr[0]*mult,quanterr[1]*mult,quanterr[2]*mult]
     return tuple([int(min(pixelVal[0] + applied[0],255)),int(min(pixelVal[1] + applied[1],255)),int(min(pixelVal[2] + applied[2],255))])
 
-def PreProcessDither(image):
-    for y in range(0,image.height):
-        for x in range(0,image.width):
-            pixel = image.getpixel((x,y))
-
 def ApplyFloydSteinberg(image):
     for y in range(0,image.height):
         for x in range(0,image.width):
