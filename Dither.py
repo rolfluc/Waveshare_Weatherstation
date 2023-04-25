@@ -68,41 +68,43 @@ def ApplyJarvisJudiceNinke(image):
             image.putpixel((x,y),newPixel)
             err = GetError(pixel, newPixel)
             #first row
-            #go from x->x+2, or image.width-1, whichever is smaller
-            startX = 0
-            startReducer = 0
-            endReducer = 0
             # _ _ x 7 5
             # 3 5 7 5 3
             # 1 3 5 3 1
             # diviser : 48
 
+            startReducer = 0
+            endReducer = 0
             if(x == image.width - 2):
                 endReducer = 2
             elif(x == image.width - 1):
                 endReducer = 1
-            
-            if(x == 0):
-                startReducer = 2
-                startX = 2
-            elif(x == 1):
-                startReducer = 1
-                startX = 1
 
             for subX in range(0,len(row0Mults) - endReducer):
-                upPix = image.getpixel((startX+x,y))
-                image.putpixel((startX+x,y),ApplyError(upPix,err,row0Mults[subX]))
+                if(subX+x >= image.width):
+                    break
+                upPix = image.getpixel((x+subX,y))
+                image.putpixel((x+subX,y),ApplyError(upPix,err,row0Mults[subX]))
+
+            if(x == 0):
+                startReducer = 2
+            elif(x == 1):
+                startReducer = 1
             #second row
             #go from x-2->x+2, or image.width-1, whichever is smaller
             if y < image.height - 1:
                 for subX in range(startReducer,len(row1Mults) - endReducer):
-                    upPix = image.getpixel((startX+x-2,y+1))
-                    image.putpixel((startX+x-2,y+1),ApplyError(upPix,err,row1Mults[subX]))
+                    if(subX+x-2 >= image.width):
+                        break
+                    upPix = image.getpixel((subX+x-2,y+1))
+                    image.putpixel((subX+x-2,y+1),ApplyError(upPix,err,row1Mults[subX]))
                 if y < image.height - 2:
                     #third row
                     for subX in range(startReducer,len(row2Mults) - endReducer):
-                        upPix = image.getpixel((startX+x-2,y+2))
-                        image.putpixel((startX+x-2,y+2),ApplyError(upPix,err,row2Mults[subX]))
+                        if(subX+x-2 >= image.width):
+                            break
+                        upPix = image.getpixel((subX+x-2,y+2))
+                        image.putpixel((subX+x-2,y+2),ApplyError(upPix,err,row2Mults[subX]))
 
             
             
@@ -121,35 +123,38 @@ def ApplyStucki(image):
             # 2 4 8 4 2
             # 1 2 4 2 1
             # diviser : 42
-            startX = 0
             startReducer = 0
             endReducer = 0
             if(x == image.width - 2):
                 endReducer = 2
             elif(x == image.width - 1):
                 endReducer = 1
-            
-            if(x == 0):
-                startReducer = 2
-                startX = 2
-            elif(x == 1):
-                startReducer = 1
-                startX = 1
 
             for subX in range(0,len(row0Mults) - endReducer):
-                upPix = image.getpixel((startX+x,y))
-                image.putpixel((startX+x,y),ApplyError(upPix,err,row0Mults[subX]))
+                if(subX+x >= image.width):
+                    break
+                upPix = image.getpixel((x+subX,y))
+                image.putpixel((x+subX,y),ApplyError(upPix,err,row0Mults[subX]))
+
+            if(x == 0):
+                startReducer = 2
+            elif(x == 1):
+                startReducer = 1
             #second row
             #go from x-2->x+2, or image.width-1, whichever is smaller
             if y < image.height - 1:
                 for subX in range(startReducer,len(row1Mults) - endReducer):
-                    upPix = image.getpixel((startX+x-2,y+1))
-                    image.putpixel((startX+x-2,y+1),ApplyError(upPix,err,row1Mults[subX]))
+                    if(subX+x-2 >= image.width):
+                        break
+                    upPix = image.getpixel((subX+x-2,y+1))
+                    image.putpixel((subX+x-2,y+1),ApplyError(upPix,err,row1Mults[subX]))
                 if y < image.height - 2:
                     #third row
                     for subX in range(startReducer,len(row2Mults) - endReducer):
-                        upPix = image.getpixel((startX+x-2,y+2))
-                        image.putpixel((startX+x-2,y+2),ApplyError(upPix,err,row2Mults[subX]))
+                        if(subX+x-2 >= image.width):
+                            break
+                        upPix = image.getpixel((subX+x-2,y+2))
+                        image.putpixel((subX+x-2,y+2),ApplyError(upPix,err,row2Mults[subX]))
 
 def BurckesDithering(image):
     row0Mults = (8/32, 4/32)
@@ -163,30 +168,31 @@ def BurckesDithering(image):
             # _ _ x 8 4
             # 2 4 8 4 2
             # diviser : 32
-            startX = 0
             startReducer = 0
             endReducer = 0
             if(x == image.width - 2):
                 endReducer = 2
             elif(x == image.width - 1):
                 endReducer = 1
-            
-            if(x == 0):
-                startReducer = 2
-                startX = 2
-            elif(x == 1):
-                startReducer = 1
-                startX = 1
 
             for subX in range(0,len(row0Mults) - endReducer):
-                upPix = image.getpixel((startX+x,y))
-                image.putpixel((startX+x,y),ApplyError(upPix,err,row0Mults[subX]))
+                if(subX+x >= image.width):
+                    break
+                upPix = image.getpixel((x+subX,y))
+                image.putpixel((x+subX,y),ApplyError(upPix,err,row0Mults[subX]))
+
+            if(x == 0):
+                startReducer = 2
+            elif(x == 1):
+                startReducer = 1
             #second row
             #go from x-2->x+2, or image.width-1, whichever is smaller
             if y < image.height - 1:
                 for subX in range(startReducer,len(row1Mults) - endReducer):
-                    upPix = image.getpixel((startX+x-2,y+1))
-                    image.putpixel((startX+x-2,y+1),ApplyError(upPix,err,row1Mults[subX]))
+                    if(subX+x-2 >= image.width):
+                        break
+                    upPix = image.getpixel((subX+x-2,y+1))
+                    image.putpixel((subX+x-2,y+1),ApplyError(upPix,err,row1Mults[subX]))
 
 def SierraDithering(image):
     row0Mults = (5/32, 3/32)
@@ -202,9 +208,51 @@ def SierraDithering(image):
             # 2 4 5 4 2
             # _ 2 3 2 _
             # diviser : 32
+            startReducer = 0
+            endReducer = 0
+            if(x == image.width - 2):
+                endReducer = 2
+            elif(x == image.width - 1):
+                endReducer = 1
+
+            for subX in range(0,len(row0Mults) - endReducer):
+                if(subX+x >= image.width):
+                    break
+                upPix = image.getpixel((x+subX,y))
+                image.putpixel((x+subX,y),ApplyError(upPix,err,row0Mults[subX]))
+
+            if(x == 0):
+                startReducer = 2
+            elif(x == 1):
+                startReducer = 1
+            #second row
+            #go from x-2->x+2, or image.width-1, whichever is smaller
+            if y < image.height - 1:
+                for subX in range(startReducer,len(row1Mults) - endReducer):
+                    if(subX+x-2 >= image.width):
+                        break
+                    upPix = image.getpixel((subX+x-2,y+1))
+                    image.putpixel((subX+x-2,y+1),ApplyError(upPix,err,row1Mults[subX]))
+                if y < image.height - 2:
+                    #third row
+                    for subX in range(startReducer,len(row2Mults) - endReducer):
+                        if(subX+x-2 >= image.width):
+                            break
+                        upPix = image.getpixel((subX+x-1,y+2))
+                        image.putpixel((subX+x-1,y+2),ApplyError(upPix,err,row2Mults[subX]))
+
+i = 0
 
 def ApplyDither(image):
-    #ApplyFloydSteinberg(image)
-    #ApplyJarvisJudiceNinke(image) #<-Pretty bad actually
-    #ApplyStucki(image)
-    BurckesDithering(image)
+    global i
+    if i == 0:
+        ApplyFloydSteinberg(image)
+    if i == 1:
+        ApplyJarvisJudiceNinke(image) 
+    if i == 2:
+        ApplyStucki(image)
+    if i == 3:
+        BurckesDithering(image)
+    if i == 4:
+        SierraDithering(image)
+    i = i + 1

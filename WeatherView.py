@@ -322,10 +322,11 @@ class WeatherViewer:
         #plt.show()
         plt.savefig(imageBuffer, dpi=dpi, format='png') 
         im = Image.open(imageBuffer)
-        #bmpim = Image.frombytes('RGB',self.fig.canvas.get_width_height(),self.fig.canvas.tostring_rgb())
-        #im = bmpim
+        baseImage = im
+
+        for x in range(0,5):
+            im = baseImage.copy()
+            ApplyDither(im)
+            self.Screen.DrawIcon((Point(0,0)),im,True)
         
-        self.Screen.DrawIcon((Point(0,0)),im,True)
-        ApplyDither(im)
-        im.show()
         
