@@ -34,7 +34,6 @@ class WeatherViewer:
     color_yellow = (255/255,255/255,0)
     color_orange = (255/255,128/255,0)
     color_black = (0,0,0)
-    color_blueAlpha = (0,0,128/255)
     rainNp = ''
     snowNp = ''
     FRainNp = ''
@@ -83,32 +82,32 @@ class WeatherViewer:
         rainImage = plt.imread('rain_smol.png')
         tmpNp = np.array(rainImage)
         self.rainNp = np.zeros(tmpNp.shape[:2], dtype=np.bool8)
-        self.rainNp[tmpNp[..., 0] == 0] = True
+        self.rainNp[tmpNp[..., 0] < 0.5] = True
 
         snowImage = plt.imread('Snow_smol.png')
         tmpNp = np.array(snowImage)
         self.snowNp = np.zeros(tmpNp.shape[:2], dtype=np.bool8)
-        self.snowNp[tmpNp[..., 0] == 0] = True
+        self.snowNp[tmpNp[..., 0] < 0.5] = True
 
         FRainImage = plt.imread('FreezingRain.png')
         tmpNp = np.array(FRainImage)
         self.FRainNp = np.zeros(tmpNp.shape[:2], dtype=np.bool8)
-        self.FRainNp[tmpNp[..., 0] == 0] = True
+        self.FRainNp[tmpNp[..., 0] < 0.5] = True
 
         ThunderstormImage = plt.imread('Thunder_smol.png')
         tmpNp = np.array(ThunderstormImage)
         self.ThunderstormNp = np.zeros(tmpNp.shape[:2], dtype=np.bool8)
-        self.ThunderstormNp[tmpNp[..., 0] == 0] = True
+        self.ThunderstormNp[tmpNp[..., 0] < 0.5] = True
 
         fogImage = plt.imread('fog_smol.png')
         tmpNp = np.array(fogImage)
         self.fogNp = np.zeros(tmpNp.shape[:2], dtype=np.bool8)
-        self.fogNp[tmpNp[..., 0] == 0] = True
+        self.fogNp[tmpNp[..., 0] < 0.5] = True
 
         hailImage = plt.imread('Hail_smol.png')
         tmpNp = np.array(hailImage)
         self.hailNp = np.zeros(tmpNp.shape[:2], dtype=np.bool8)
-        self.hailNp[tmpNp[..., 0] == 0] = True
+        self.hailNp[tmpNp[..., 0] < 0.5] = True
         
         #self.fig.tight_layout()
         plt.subplots_adjust(hspace=0.5)
@@ -117,15 +116,19 @@ class WeatherViewer:
         self.Screen.SleepScreen()
 
     def DrawOnGraph(self,xPositions,yPositions,boolArray,graph):
+        #blackDisplayColor = (0,0,0)
+        blackDisplayColor = (0,0,0)
+        #alphaBlueDisplayColor = (32,32,255)
+        alphaBlueDisplayColor = (128/255,128/255,255/255)
         xy = self.getDrawXY(xPositions,yPositions)
         image = np.zeros((40,40,3))
         for y in range(boolArray.shape[0]):
             for x in range(boolArray.shape[1]):
                 if boolArray[y][x]:
-                    image[y][x] = self.color_black
+                    image[y][x] = blackDisplayColor
                 else:
-                    image[y][x] = self.color_blueAlpha    
-        imagebox = OffsetImage(self.rainNp,zoom=.2)
+                    image[y][x] = alphaBlueDisplayColor
+        imagebox = OffsetImage(image,zoom=.2)
         ab = AnnotationBbox(imagebox,xy,frameon=False)
         graph.add_artist(ab)
 
