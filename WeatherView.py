@@ -8,6 +8,7 @@ from datetime import datetime
 from PIL import Image
 import io
 from Dither import *
+from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 
 class WeatherViewer:
     PosInterpreter = PositionInterpretter()
@@ -17,6 +18,7 @@ class WeatherViewer:
     precipitationTypes = ['rain','snow','ice','freezingrain']
     daysOfTheWeek = ["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"]
     Himage = ""
+    trackingCondition = ''
     HumidityBarWidth_px = 10
     Humidity_SaturatedHeight_px = 100
     fig = plt.figure()
@@ -32,6 +34,13 @@ class WeatherViewer:
     color_yellow = (255/255,255/255,0)
     color_orange = (255/255,128/255,0)
     color_black = (0,0,0)
+    color_blueAlpha = (0,0,128/255)
+    rainNp = ''
+    snowNp = ''
+    FRainNp = ''
+    fogNp = ''
+    hailNp = ''
+    ThunderstormNp = ''
 
     def __init__(self):
         todayDay = datetime.today().weekday()
@@ -71,6 +80,35 @@ class WeatherViewer:
         #self.nextGraph.set(xticklabels=[])
         #self.nextGraph.tick_params(bottom=False)
 
+        rainImage = plt.imread('rain_smol.png')
+        tmpNp = np.array(rainImage)
+        self.rainNp = np.zeros(tmpNp.shape[:2], dtype=np.bool8)
+        self.rainNp[tmpNp[..., 0] == 0] = True
+
+        snowImage = plt.imread('Snow_smol.png')
+        tmpNp = np.array(snowImage)
+        self.snowNp = np.zeros(tmpNp.shape[:2], dtype=np.bool8)
+        self.snowNp[tmpNp[..., 0] == 0] = True
+
+        FRainImage = plt.imread('FreezingRain.png')
+        tmpNp = np.array(FRainImage)
+        self.FRainNp = np.zeros(tmpNp.shape[:2], dtype=np.bool8)
+        self.FRainNp[tmpNp[..., 0] == 0] = True
+
+        ThunderstormImage = plt.imread('Thunder_smol.png')
+        tmpNp = np.array(ThunderstormImage)
+        self.ThunderstormNp = np.zeros(tmpNp.shape[:2], dtype=np.bool8)
+        self.ThunderstormNp[tmpNp[..., 0] == 0] = True
+
+        fogImage = plt.imread('fog_smol.png')
+        tmpNp = np.array(fogImage)
+        self.fogNp = np.zeros(tmpNp.shape[:2], dtype=np.bool8)
+        self.fogNp[tmpNp[..., 0] == 0] = True
+
+        hailImage = plt.imread('Hail_smol.png')
+        tmpNp = np.array(hailImage)
+        self.hailNp = np.zeros(tmpNp.shape[:2], dtype=np.bool8)
+        self.hailNp[tmpNp[..., 0] == 0] = True
         
         #self.fig.tight_layout()
         plt.subplots_adjust(hspace=0.5)
@@ -78,41 +116,51 @@ class WeatherViewer:
     def DoSleep(self):
         self.Screen.SleepScreen()
 
-    def DoShow(self):
-        a = 0
+    def DrawOnGraph(self,xPositions,yPositions,boolArray,graph):
+        xy = self.getDrawXY(xPositions,yPositions)
+        image = np.zeros((40,40,3))
+        for y in range(boolArray.shape[0]):
+            for x in range(boolArray.shape[1]):
+                if boolArray[y][x]:
+                    image[y][x] = self.color_black
+                else:
+                    image[y][x] = self.color_blueAlpha    
+        imagebox = OffsetImage(self.rainNp,zoom=.2)
+        ab = AnnotationBbox(imagebox,xy,frameon=False)
+        graph.add_artist(ab)
 
-    def DoDraw(self,pos,data):
-        self.Screen.DrawIcon(pos,data,False)
+    def getDrawXY(self,xPositions,yPositions):
+        middleX = xPositions[int(len(xPositions) / 2)]
+        #len of 2 looks better going left->right instead of on the rightmost boundry.
+        yVal =  (yPositions[middleX] + max(yPositions)) / 2
+        if(len(xPositions) == 2):
+            middleX = middleX - 0.5
+        return ((middleX,yVal))
 
-    def DoDrawText(self,pos,text):
-        self.Screen.DrawText(pos,text,False)
-
-    def DisplayRain(self,position):
-        setPos = 0
+    def DisplayRain(self,graph,xPositions,yPositions):
+        self.DrawOnGraph(xPositions,yPositions,self.rainNp,graph)
         
-    def DisplaySnow(self,position):
-        setPos = 0
+    def DisplaySnow(self,graph,xPositions,yPositions):
+        self.DrawOnGraph(xPositions,yPositions,self.snowNp,graph)
 
-    def DisplayIce(self,position):
-        setPos = 0
+    def DisplayIce(self,graph,xPositions,yPositions):
+        self.DisplayFreezingRain(graph,xPositions,yPositions)
 
-    def DisplayFreezingRain(self,position):
-        setPos = 0
+    def DisplayFreezingRain(self,graph,xPositions,yPositions):
+        self.DrawOnGraph(xPositions,yPositions,self.FRainNp,graph)
 
-    def DisplayThunderstorm(self,position):
-        setPos = 0
+    def DisplayThunderstorm(self,graph,xPositions,yPositions):
+        self.DrawOnGraph(xPositions,yPositions,self.ThunderstormNp,graph)
 
-    def DisplayFog(self,position):
-        setPos = 0
+    def DisplayFog(self,graph,xPositions,yPositions):
+        self.DrawOnGraph(xPositions,yPositions,self.fogNp,graph)
 
-    def DisplayHail(self,position):
-        setPos = 0
+    def DisplayHail(self,graph,xPositions,yPositions):
+        self.DrawOnGraph(xPositions,yPositions,self.hailNp,graph)
 
     def DisplayCondition(self,graph,conditionArray,yDat):
-        yTarget = 0.5
         isOpen = False
         yDelta = max(yDat) - min(yDat)
-        trackingCondition = ''
         conditionXPositions = []*0
         conditionYPositions = []*0
         for index in range(0,len(conditionArray)):
@@ -120,32 +168,31 @@ class WeatherViewer:
             condition = conditionArray[index]
             if ("snow" in condition): #Snow intentionally before rain
                 condFound = True
-                self.DisplaySnow(graph)
+                self.trackingCondition = self.DisplaySnow
             elif ("hail" in condition):
                 condFound = True
-                self.DisplayHail(graph)
+                self.trackingCondition = self.DisplayHail
             elif ("freezing" in condition):
                 condFound = True
-                self.DisplayFreezingRain(graph)
+                self.trackingCondition = self.DisplayFreezingRain
             elif ("drizzle" in condition or "rain" in condition):
                 condFound = True
-                self.DisplayRain(graph)
+                self.trackingCondition = self.DisplayRain
             elif ("thunderstorm" in condition):
                 condFound = True
-                self.DisplayThunderstorm(graph)
+                self.trackingCondition = self.DisplayThunderstorm
             elif ("ice" in condition or "hail" in condition):
                 condFound = True
-                self.DisplayIce(graph)
+                self.trackingCondition = self.DisplayIce
             elif ("fog" in condition): 
                 condFound = True
-                self.DisplayFog(graph)
+                self.trackingCondition = self.DisplayFog
             if(condFound):
                 conditionXPositions.append(index)
                 if(not isOpen):
                     #found a condition, and not currently tracking a condition
                     isOpen = True
                     graph.axvline(x=index, ymin=min(((yDat[index]-min(yDat)) / yDelta) + 0.025,0.95), ymax=1,color=self.color_blue)
-                    #graph.axvline(x=index, ymin=min(((yDat[index]-min(yDat)) / yDelta),0.95), ymax=1,color=self.color_blue)
                 #otherwise, we want to add the other y axis
             else:
                 if(isOpen):
@@ -153,18 +200,23 @@ class WeatherViewer:
                     isOpen = False
                     conditionXPositions.append(index)
                     graph.axvline(x=index, ymin=min(((yDat[index]-min(yDat)) / yDelta) + 0.025,0.95), ymax=1,color=self.color_blue)
-                    #graph.axvline(x=index, ymin=min(((yDat[index]-min(yDat)) / yDelta),0.95), ymax=1,color=self.color_blue)
                     for xpos in conditionXPositions:
                         conditionYPositions.append(yDat[xpos])
                     #draw existing shading, reset
                     graph.fill_between(conditionXPositions, conditionYPositions, max(yDat), facecolor=self.color_blue, alpha=0.5)   
+                    if len(conditionXPositions) > 1:
+                        self.trackingCondition(graph,conditionXPositions,yDat)
+
+                    self.trackingCondition = ''
                     conditionXPositions = []*0
                     conditionYPositions = []*0
+                else:
+                    #ensure tracking condition is cleared
+                    self.trackingCondition = ''
                 # If no condition found, and not tracking one, no worries!
         #if didn't close the last one, end here:
         if(isOpen):
             graph.axvline(x=len(conditionArray)-1, ymin=min(((yDat[len(conditionArray)-1]-min(yDat)) / yDelta),0.95), ymax=1,color=self.color_blue)
-            #graph.axvline(x=len(conditionArray)-1, ymin=min(((yDat[len(conditionArray)-1]-min(yDat)) / yDelta) + 0.025,0.95), ymax=1,color=self.color_blue)
         # now draw
         for xpos in conditionXPositions:
             conditionYPositions.append(yDat[xpos])
@@ -323,10 +375,11 @@ class WeatherViewer:
         plt.savefig(imageBuffer, dpi=dpi, format='png') 
         im = Image.open(imageBuffer)
         baseImage = im
+        self.Screen.DrawIcon((Point(0,0)),im,True)
 
-        for x in range(0,5):
-            im = baseImage.copy()
-            ApplyDither(im)
-            self.Screen.DrawIcon((Point(0,0)),im,True)
+        #for x in range(0,5):
+        #    im = baseImage.copy()
+        #    ApplyDither(im)
+        #    self.Screen.DrawIcon((Point(0,0)),im,True)
         
         
