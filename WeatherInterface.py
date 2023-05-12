@@ -67,6 +67,8 @@ class Weather:
     def ExtractInfo(self,hourData,hourIndex):
         temperature = hourData["temp"]
         precipitation = hourData["preciptype"]
+        if precipitation is not None:
+            precipitation = precipitation[0]
         precipitation_prob = hourData["precipprob"]
         humidity = hourData["humidity"]
         condition = hourData["conditions"]

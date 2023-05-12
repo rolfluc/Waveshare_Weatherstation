@@ -33,6 +33,7 @@ class WeatherViewer:
     color_white = (255/255,255/255,255/255)
     color_yellow = (255/255,255/255,0)
     color_orange = (255/255,128/255,0)
+    alphaBlueDisplayColor = (128/255,128/255,255/255)
     color_black = (0,0,0)
     rainNp = ''
     snowNp = ''
@@ -40,6 +41,7 @@ class WeatherViewer:
     fogNp = ''
     hailNp = ''
     ThunderstormNp = ''
+    dpi = 100 # set desired dpi (dots per inch)
 
     def __init__(self):
         todayDay = datetime.today().weekday()
@@ -84,7 +86,7 @@ class WeatherViewer:
         self.rainNp = np.zeros(tmpNp.shape[:2], dtype=np.bool8)
         self.rainNp[tmpNp[..., 0] < 0.5] = True
 
-        snowImage = plt.imread('Snow_smol.png')
+        snowImage = plt.imread('Snow_smol.bmp')
         tmpNp = np.array(snowImage)
         self.snowNp = np.zeros(tmpNp.shape[:2], dtype=np.bool8)
         self.snowNp[tmpNp[..., 0] < 0.5] = True
@@ -116,21 +118,22 @@ class WeatherViewer:
         self.Screen.SleepScreen()
 
     def DrawOnGraph(self,xPositions,yPositions,boolArray,graph):
-        #blackDisplayColor = (0,0,0)
         blackDisplayColor = (0,0,0)
-        #alphaBlueDisplayColor = (32,32,255)
-        alphaBlueDisplayColor = (128/255,128/255,255/255)
         xy = self.getDrawXY(xPositions,yPositions)
-        image = np.zeros((40,40,3))
+        a = boolArray.shape[0]
+        image = np.zeros((a,a,3))
         for y in range(boolArray.shape[0]):
             for x in range(boolArray.shape[1]):
                 if boolArray[y][x]:
                     image[y][x] = blackDisplayColor
                 else:
-                    image[y][x] = alphaBlueDisplayColor
-        imagebox = OffsetImage(image,zoom=.2)
+                    image[y][x] = self.alphaBlueDisplayColor
+        
+        imagebox = OffsetImage(image,zoom=0.4,dpi_cor=False,resample=False,filternorm=False)
         ab = AnnotationBbox(imagebox,xy,frameon=False)
         graph.add_artist(ab)
+
+
 
     def getDrawXY(self,xPositions,yPositions):
         middleX = xPositions[int(len(xPositions) / 2)]
@@ -161,7 +164,7 @@ class WeatherViewer:
     def DisplayHail(self,graph,xPositions,yPositions):
         self.DrawOnGraph(xPositions,yPositions,self.hailNp,graph)
 
-    def DisplayCondition(self,graph,conditionArray,yDat):
+    def DisplayCondition(self,graph,conditionArray,precipDat,precipChance,yDat):
         isOpen = False
         yDelta = max(yDat) - min(yDat)
         conditionXPositions = []*0
@@ -169,6 +172,8 @@ class WeatherViewer:
         for index in range(0,len(conditionArray)):
             condFound = False
             condition = conditionArray[index]
+            if precipDat[index] is not None and precipChance[index] >= 25.0:
+                condition = condition + precipDat[index]
             if ("snow" in condition): #Snow intentionally before rain
                 condFound = True
                 self.trackingCondition = self.DisplaySnow
@@ -220,6 +225,8 @@ class WeatherViewer:
         #if didn't close the last one, end here:
         if(isOpen):
             graph.axvline(x=len(conditionArray)-1, ymin=min(((yDat[len(conditionArray)-1]-min(yDat)) / yDelta),0.95), ymax=1,color=self.color_blue)
+            if len(conditionXPositions) > 1:
+                self.trackingCondition(graph,conditionXPositions,yDat)
         # now draw
         for xpos in conditionXPositions:
             conditionYPositions.append(yDat[xpos])
@@ -311,13 +318,13 @@ class WeatherViewer:
         delta = maxY - minY
 
         additionalYRise = ((plotY[1] - plotY[0]) / delta) * additionalXRise/2
-        additionalYSet = ((plotY[len(plotY)-2] - plotY[len(plotY)-1]) / delta) * additionalXSet/2
+        additionalYSet = ((plotY[len(plotY)-2] - plotY[len(plotY)-1]) / delta)
 
         if(len(plotX) > 1):
             if(displayBoth is True):
-                yTarget = (abs(plotY[0]) + additionalYRise - minY) / delta
+                yTarget = (abs(plotY[0]) - additionalYRise - minY) / delta
                 graph.axvline(x=plotX[0]+ additionalXRise, ymin=0, ymax=max(yTarget,0.025),color=self.color_orange)
-            yTarget = (abs(plotY[len(plotY)-1]) + additionalYSet - minY) / delta
+            yTarget = (abs(plotY[len(plotY)-1]) - additionalYSet - minY) / delta
             graph.axvline(x=plotX[len(plotX)-1] + additionalXSet, ymin=0, ymax=max(yTarget,0.025),color=self.color_orange)
 
     def DisplayToday(self,hoursData):
@@ -327,6 +334,7 @@ class WeatherViewer:
         tempDat = np.zeros(dtype=np.float64,shape=len(hoursData[1]))
         humidDat = np.zeros(dtype=np.int8,shape=len(hoursData[1]))
         conditionDat = np.empty(dtype=object,shape=len(hoursData[1]))
+        precipDat = np.empty(dtype=object,shape=len(hoursData[1]))
         precipPercentDat = np.zeros(dtype=np.int8,shape=len(hoursData[1]))
         xAxis = [None] * 24
         xLabels = [None] * 24
@@ -336,6 +344,7 @@ class WeatherViewer:
             tempDat[x] = hoursData[1][x][0]
             humidDat[x] = hoursData[1][x][1]
             conditionDat[x] = hoursData[1][x][2].lower()
+            precipDat[x] = hoursData[1][x][3]
             precipPercentDat[x] = hoursData[1][x][4]
             xAxis[xIndex] = hoursData[1][x][6]
             if x % 4 == 0:
@@ -354,7 +363,7 @@ class WeatherViewer:
         graph.set_xticks(range(len(xAxis)))
         graph.set_xticklabels(xLabels)
         self.PlotSunData(graph,hoursData[0][0], hoursData[0][1],xAxis,tempDat)
-        self.DisplayCondition(graph,conditionDat,tempDat)
+        self.DisplayCondition(graph,conditionDat,precipDat,precipPercentDat,tempDat)
         graph.plot(tempDat, color=self.color_red)
         
     def DisplayTomorrow(self,tmrDat):
@@ -368,14 +377,13 @@ class WeatherViewer:
 
     def SendToScreen(self):
         # Save figure, with specific DPI and size
-        dpi = 100 # set desired dpi (dots per inch)
         width_px,height_px=(600,400) # set desired figure size in pixels (width,height)
-        self.fig.set_size_inches(width_px/dpi,height_px/dpi) # convert pixel dimensions to inches and set figure size accordingly
+        self.fig.set_size_inches(width_px/self.dpi,height_px/self.dpi) # convert pixel dimensions to inches and set figure size accordingly
 
         #do image conversion
         imageBuffer = io.BytesIO()
         #plt.show()
-        plt.savefig(imageBuffer, dpi=dpi, format='png') 
+        plt.savefig(imageBuffer, dpi=self.dpi, format='png') 
         im = Image.open(imageBuffer)
         baseImage = im
         self.Screen.DrawIcon((Point(0,0)),im,True)
