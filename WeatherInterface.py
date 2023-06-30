@@ -23,7 +23,7 @@ class Weather:
         self.Location = "Minneapolis"
         self.unitString = "?unitGroup=uk"
         self.parameterString = "&include=days%2Chours%2Ccurrent"
-        self.contentType = "&contentType=json"
+        self.contentType = "&contentType=json&elements=%2Baqius"
         self.precipitationTypes = ['rain','snow','ice','freezingrain']
 
         try:
