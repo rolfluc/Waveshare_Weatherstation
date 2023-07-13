@@ -292,8 +292,8 @@ class WeatherViewer:
         plotY.append(yDat[plotIndex])
         plotIndex += 1
         #from here, grab each hour, and the y data, until the setTime is reached
-        while currentPlot < setTime and plotIndex < len(xHours):
-            if xHours[plotIndex] < setTime:
+        while currentPlot <= int(setTime) and plotIndex < len(xHours):
+            if xHours[plotIndex] < int(setTime):
                 currentPlot = xHours[plotIndex]
                 plotX.append(plotIndex)
                 plotY.append(yDat[plotIndex])
@@ -317,8 +317,12 @@ class WeatherViewer:
         maxY = max(yDat)
         delta = maxY - minY
 
-        additionalYRise = ((plotY[1] - plotY[0]) / delta) * additionalXRise/2
-        additionalYSet = ((plotY[len(plotY)-2] - plotY[len(plotY)-1]) / delta)
+        if len(plotY) > 1:
+            additionalYRise = ((plotY[1] - plotY[0]) / delta) * additionalXRise/2
+            additionalYSet = ((plotY[len(plotY)-2] - plotY[len(plotY)-1]) / delta)
+        else:
+            additionalYRise = 0
+            additionalYSet = 0
 
         if(len(plotX) > 1):
             if(displayBoth is True):
