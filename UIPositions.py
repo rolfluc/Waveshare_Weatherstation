@@ -21,11 +21,11 @@ class Point:
 
 class PositionInterpretter:
     def GetTodayTopLeft():
-        return (25,50)
+        return (30,50)
     def GetTodayBottomRight():
         return (575,200)
     def GetTomorrowTopLeft():
-        return (25,250)
+        return (30,250)
     def GetTomorrowBottomRight():
         return (275,420)
     def GetNextTopLeft():

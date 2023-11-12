@@ -293,24 +293,28 @@ class WeatherViewer:
             graph.axvline(x=plotX[len(plotX)-1] + additionalXSet, ymin=0, ymax=max(yTarget,0.025),color=self.color_orange)
 
     def DisplayToday(self,hoursData):
-        # Might as well create the three rectangles
         self.d.rectangle([PositionInterpretter.GetTodayTopLeft(),PositionInterpretter.GetTodayBottomRight()],outline='black')
-        self.d.rectangle([PositionInterpretter.GetTomorrowTopLeft(),PositionInterpretter.GetTomorrowBottomRight()],outline='black')
-        self.d.rectangle([PositionInterpretter.GetNextTopLeft(),PositionInterpretter.GetNextBottomRight()],outline='black')
         self.DisplayDay(hoursData,PositionInterpretter.GetTodayTopLeft(),PositionInterpretter.GetTodayBottomRight())
+
+    def GetLinePoint(self,yDat,ytop,ybot,ytopVal,ybotVal,index,xspacing,xStart):
+        xPos = int(xStart + index*xspacing)
+        yPos = int((abs(yDat) / (ytopVal - ybotVal)) * (ytop - ybot) + ybot)
+        return (xPos,yPos)
 
     
     def DisplayDay(self,hoursData,topleft,bottomright):
-        tempDat = np.zeros(dtype=np.float64,shape=len(hoursData[1]))
-        humidDat = np.zeros(dtype=np.int8,shape=len(hoursData[1]))
-        conditionDat = np.empty(dtype=object,shape=len(hoursData[1]))
-        precipDat = np.empty(dtype=object,shape=len(hoursData[1]))
-        precipPercentDat = np.zeros(dtype=np.int8,shape=len(hoursData[1]))
-        xLabels = [None] * 24
+        tempDat = [None] * len(hoursData[1])
+        humidDat = [None] * len(hoursData[1])
+        conditionDat = [None] * len(hoursData[1])
+        precipDat = [None] * len(hoursData[1])
+        precipPercentDat =  [None] * len(hoursData[1])
+        xLabels = [None] * len(hoursData[1])
+        points = [None] * len(hoursData[1])
         xIndex = 0
 
         x1 = topleft[0]
         x2 = bottomright[0]
+        y1 = topleft[1]
         y2 = bottomright[1]
         tick_spacing = (x2 - x1) / 24
         
@@ -334,27 +338,38 @@ class WeatherViewer:
 
             # Draw the number below the tick
             self.d.text((x, y2 + 20), xLabels[j], fill='black', anchor='ms', font=self.tickFont)
+        yAxisTickLeft = x1 - 5
+        yAxisTickRight = x1 + 1
+        topTick = y1 + 5
+        botTick = y2 - 5
+        midTick = (y2 + y1) / 2
+        self.d.line([(yAxisTickLeft,topTick),(yAxisTickRight,topTick)],fill='black')
+        self.d.line([(yAxisTickLeft,midTick),(yAxisTickRight,midTick)],fill='black')
+        self.d.line([(yAxisTickLeft,botTick),(yAxisTickRight,botTick)],fill='black')
 
         minmax = self.GetMinMax(hoursData)
-        #graph.set_yticks([minmax[0][0], minmax[1][0]])
-        #raph.set_yticklabels([str(minmax[0][0]) + "°C", str(minmax[1][0])+"°C"]) 
-        #graph.tick_params(axis='y',pad=-3)
-        
-        #graph.set_xticks(range(len(xAxis)))
-        #graph.set_xticklabels(xLabels)
-        #self.PlotSunData(graph,hoursData[0][0], hoursData[0][1],xAxis,tempDat)
-        #self.DisplayCondition(graph,conditionDat,precipDat,precipPercentDat,tempDat)
-        #graph.plot(tempDat, color=self.color_red)
+        minTemp = minmax[0][0]
+        midTemp = (minmax[0][0]+minmax[1][0])/2
+        maxTemp = minmax[1][0]
+        self.d.text((yAxisTickLeft - 6, topTick-1), str(maxTemp).rjust(4), fill='black', anchor='ms', font=self.tickFont)
+        self.d.text((yAxisTickLeft - 6, botTick-1), str(minTemp).rjust(4), fill='black', anchor='ms', font=self.tickFont)
+        self.d.text((yAxisTickLeft - 6, midTick-1), "{:.1f}".format(midTemp).rjust(4), fill='black', anchor='ms', font=self.tickFont)
+        index = 0 
+        for each in tempDat:
+            points[index] = self.GetLinePoint(each,y1+5,y2-5,maxTemp,minTemp,index,tick_spacing,x1)
+            index += 1 
+        for x in range(0,len(points) - 1):
+            self.d.line([points[x],points[x+1]],fill='black')
+
         
     def DisplayTomorrow(self,tmrDat):
-        #self.DisplayDay(tmrDat)
-        a = 0
+        self.d.rectangle([PositionInterpretter.GetTomorrowTopLeft(),PositionInterpretter.GetTomorrowBottomRight()],outline='black')
+        self.DisplayDay(tmrDat,PositionInterpretter.GetTomorrowTopLeft(),PositionInterpretter.GetTomorrowBottomRight())
     
     def DisplayNextDay(self,tmrDat):
-        #self.DisplayDay(tmrDat,self.nextGraph)
-        a = 0
+        self.d.rectangle([PositionInterpretter.GetNextTopLeft(),PositionInterpretter.GetNextBottomRight()],outline='black')
+        self.DisplayDay(tmrDat,PositionInterpretter.GetNextTopLeft(),PositionInterpretter.GetNextBottomRight())
 
     def SendToScreen(self):
         # Save figure, with specific DPI and size
-        width_px,height_px=(600,448) # set desired figure size in pixels (width,height)
         self.img.show()   
