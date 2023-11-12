@@ -36,18 +36,20 @@ class WeatherViewer:
     fogNp = ''
     hailNp = ''
     ThunderstormNp = ''
-    dpi = 100 # set desired dpi (dots per inch)
+    heute = 0
+    morgan = 0
+    ubermorgan = 0
 
     def __init__(self):
-        todayDay = datetime.today().weekday()
+        self.heute = datetime.today().weekday()
 
-        todayDay = todayDay + 1
-        if todayDay > 6:
-            todayDay = 0
+        self.morgan = self.heute + 1
+        if self.morgan > 6:
+            self.morgan = 0
 
-        todayDay = todayDay + 1
-        if todayDay > 6:
-            todayDay = 0
+        self.ubermorgan = self.morgan + 1
+        if self.ubermorgan > 6:
+            self.ubermorgan = 0
 
         #rainImage = Image.open('rain_smol.bmp')
         #tmpNp = np.array(rainImage)
@@ -256,10 +258,6 @@ class WeatherViewer:
             self.d.line([(riseX,topleft[1]),(riseX,bottomright[1])],fill='blue')
         self.d.line([(setX,topleft[1]),(setX,bottomright[1])],fill='blue')
 
-    def DisplayToday(self,hoursData):
-        self.d.rectangle([PositionInterpretter.GetTodayTopLeft(),PositionInterpretter.GetTodayBottomRight()],outline='black')
-        self.DisplayDay(hoursData,PositionInterpretter.GetTodayTopLeft(),PositionInterpretter.GetTodayBottomRight())
-
     def GetLinePoint(self,yDat,ytop,ybot,ytopVal,ybotVal,index,xspacing,xStart):
         xPos = int(xStart + index*xspacing)
         percent = abs(yDat - ybotVal) / (ytopVal - ybotVal)
@@ -330,14 +328,21 @@ class WeatherViewer:
 
         self.PlotSunData(topleft,bottomright,hoursData[0][0],hoursData[0][1],hourDat,tick_spacing)
 
+    def DisplayToday(self,hoursData):
+        self.d.rectangle([PositionInterpretter.GetTodayTopLeft(),PositionInterpretter.GetTodayBottomRight()],outline='black')
+        self.DisplayDay(hoursData,PositionInterpretter.GetTodayTopLeft(),PositionInterpretter.GetTodayBottomRight())
+        self.d.text(((PositionInterpretter.GetTodayTopLeft()[0] + PositionInterpretter.GetTodayBottomRight()[0]) / 2, PositionInterpretter.GetTodayTopLeft()[1] - 10), self.daysOfTheWeek[self.heute], fill='black', anchor='ms', font=self.titlefont)
         
     def DisplayTomorrow(self,tmrDat):
         self.d.rectangle([PositionInterpretter.GetTomorrowTopLeft(),PositionInterpretter.GetTomorrowBottomRight()],outline='black')
         self.DisplayDay(tmrDat,PositionInterpretter.GetTomorrowTopLeft(),PositionInterpretter.GetTomorrowBottomRight())
+        self.d.text(((PositionInterpretter.GetTomorrowTopLeft()[0] + PositionInterpretter.GetTomorrowBottomRight()[0]) / 2, PositionInterpretter.GetTomorrowTopLeft()[1] - 10), self.daysOfTheWeek[self.morgan], fill='black', anchor='ms', font=self.titlefont)
     
     def DisplayNextDay(self,tmrDat):
         self.d.rectangle([PositionInterpretter.GetNextTopLeft(),PositionInterpretter.GetNextBottomRight()],outline='black')
         self.DisplayDay(tmrDat,PositionInterpretter.GetNextTopLeft(),PositionInterpretter.GetNextBottomRight())
+        self.d.text(((PositionInterpretter.GetNextTopLeft()[0] + PositionInterpretter.GetNextBottomRight()[0]) / 2, PositionInterpretter.GetNextTopLeft()[1] - 10), self.daysOfTheWeek[self.ubermorgan], fill='black', anchor='ms', font=self.titlefont)
+
 
     def SendToScreen(self):
         # Save figure, with specific DPI and size
