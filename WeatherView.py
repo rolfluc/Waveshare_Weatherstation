@@ -1,17 +1,13 @@
 from UIPositions import *
 from IconInterface import *
 from ScreenInterface import *
-import matplotlib.pyplot as plt
-from matplotlib.gridspec import GridSpec
 import numpy as np
 from datetime import datetime
 from PIL import Image
 import io
 from Dither import *
-from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 
 class WeatherViewer:
-    PosInterpreter = PositionInterpretter()
     IconInterpreter = IconInterface()
     Screen = ScreenInterface()
     WeatherData = ""
@@ -21,11 +17,10 @@ class WeatherViewer:
     trackingCondition = ''
     HumidityBarWidth_px = 10
     Humidity_SaturatedHeight_px = 100
-    fig = plt.figure()
-
-    today = fig.add_subplot(211)
-    tomorrowGraph = fig.add_subplot(223)
-    nextGraph = fig.add_subplot(224)
+    img = Image.new('RGB', (ScreenWIDTH, ScreenHEIGHT), 'white')
+    d = ImageDraw.Draw(img)
+    tickFont = ImageFont.truetype("times.ttf", 12)
+    titlefont = ImageFont.truetype("times.ttf", 24)
 
     color_blue = (0,0,255/255)
     color_green = (0,255/255,0)
@@ -46,74 +41,44 @@ class WeatherViewer:
     def __init__(self):
         todayDay = datetime.today().weekday()
 
-        self.today.set_title(self.daysOfTheWeek[todayDay])
-        self.today.tick_params(labelsize=8)
-        self.today.title.set_fontsize(14)
-        #self.today.set(ylabel=None)
-        #self.today.set(yticklabels=[])
-        self.today.tick_params(left=False)
-        #self.today.set(xlabel=None)
-        #self.today.set(xticklabels=[])
-        #self.today.tick_params(bottom=False)
         todayDay = todayDay + 1
         if todayDay > 6:
             todayDay = 0
-        self.tomorrowGraph.set_title(self.daysOfTheWeek[todayDay])
-        self.tomorrowGraph.tick_params(labelsize=8)
-        self.tomorrowGraph.title.set_fontsize(14)
-        #self.tomorrowGraph.set(ylabel=None)
-        #self.tomorrowGraph.set(yticklabels=[])
-        self.tomorrowGraph.tick_params(left=False)
-        #self.tomorrowGraph.set(xlabel=None)
-        #self.tomorrowGraph.set(xticklabels=[])
-        #self.tomorrowGraph.tick_params(bottom=False)
 
         todayDay = todayDay + 1
         if todayDay > 6:
             todayDay = 0
-        self.nextGraph.set_title(self.daysOfTheWeek[todayDay])
-        self.nextGraph.tick_params(labelsize=8)
-        self.nextGraph.title.set_fontsize(14)
-        #self.nextGraph.set(ylabel=None)
-        #self.nextGraph.set(yticklabels=[])
-        self.nextGraph.tick_params(left=False)
-        #self.nextGraph.set(xlabel=None)
-        #self.nextGraph.set(xticklabels=[])
-        #self.nextGraph.tick_params(bottom=False)
 
-        rainImage = plt.imread('rain_smol.png')
-        tmpNp = np.array(rainImage)
-        self.rainNp = np.zeros(tmpNp.shape[:2], dtype=np.bool8)
-        self.rainNp[tmpNp[..., 0] < 0.5] = True
+        #rainImage = Image.open('rain_smol.bmp')
+        #tmpNp = np.array(rainImage)
+        #self.rainNp = np.zeros(tmpNp.shape[:2], dtype=np.bool8)
+        #self.rainNp[tmpNp[..., 0] < 0.5] = True
 
-        snowImage = plt.imread('Snow_smol.bmp')
-        tmpNp = np.array(snowImage)
-        self.snowNp = np.zeros(tmpNp.shape[:2], dtype=np.bool8)
-        self.snowNp[tmpNp[..., 0] < 0.5] = True
+        #snowImage = Image.open('Snow_smol.bmp')
+        #tmpNp = np.array(snowImage)
+        #self.snowNp = np.zeros(tmpNp.shape[:2], dtype=np.bool8)
+        #self.snowNp[tmpNp[..., 0] < 0.5] = True
 
-        FRainImage = plt.imread('FreezingRain.png')
-        tmpNp = np.array(FRainImage)
-        self.FRainNp = np.zeros(tmpNp.shape[:2], dtype=np.bool8)
-        self.FRainNp[tmpNp[..., 0] < 0.5] = True
+        #FRainImage = Image.open('FreezingRain.bmp')
+        #tmpNp = np.array(FRainImage)
+        #self.FRainNp = np.zeros(tmpNp.shape[:2], dtype=np.bool8)
+        #self.FRainNp[tmpNp[..., 0] < 0.5] = True
 
-        ThunderstormImage = plt.imread('Thunder_smol.png')
-        tmpNp = np.array(ThunderstormImage)
-        self.ThunderstormNp = np.zeros(tmpNp.shape[:2], dtype=np.bool8)
-        self.ThunderstormNp[tmpNp[..., 0] < 0.5] = True
+        #ThunderstormImage = Image.open('Thunder_smol.bmp')
+        #tmpNp = np.array(ThunderstormImage)
+        #self.ThunderstormNp = np.zeros(tmpNp.shape[:2], dtype=np.bool8)
+        #self.ThunderstormNp[tmpNp[..., 0] < 0.5] = True
 
-        fogImage = plt.imread('fog_smol.png')
-        tmpNp = np.array(fogImage)
-        self.fogNp = np.zeros(tmpNp.shape[:2], dtype=np.bool8)
-        self.fogNp[tmpNp[..., 0] < 0.5] = True
+        #fogImage = Image.open('fog_smol.bmp')
+        #tmpNp = np.array(fogImage)
+        #self.fogNp = np.zeros(tmpNp.shape[:2], dtype=np.bool8)
+        #self.fogNp[tmpNp[..., 0] < 0.5] = True
 
-        hailImage = plt.imread('Hail_smol.png')
-        tmpNp = np.array(hailImage)
-        self.hailNp = np.zeros(tmpNp.shape[:2], dtype=np.bool8)
-        self.hailNp[tmpNp[..., 0] < 0.5] = True
+        #hailImage = Image.open('Hail_smol.bmp')
+        #tmpNp = np.array(hailImage)
+        #self.hailNp = np.zeros(tmpNp.shape[:2], dtype=np.bool8)
+        #self.hailNp[tmpNp[..., 0] < 0.5] = True
         
-        #self.fig.tight_layout()
-        plt.subplots_adjust(hspace=0.5)
-
     def DoSleep(self):
         self.Screen.SleepScreen()
 
@@ -128,12 +93,8 @@ class WeatherViewer:
                     image[y][x] = blackDisplayColor
                 else:
                     image[y][x] = self.alphaBlueDisplayColor
+
         
-        imagebox = OffsetImage(image,zoom=0.4,dpi_cor=False,resample=False,filternorm=False)
-        ab = AnnotationBbox(imagebox,xy,frameon=False)
-        graph.add_artist(ab)
-
-
 
     def getDrawXY(self,xPositions,yPositions):
         middleX = xPositions[int(len(xPositions) / 2)]
@@ -332,17 +293,27 @@ class WeatherViewer:
             graph.axvline(x=plotX[len(plotX)-1] + additionalXSet, ymin=0, ymax=max(yTarget,0.025),color=self.color_orange)
 
     def DisplayToday(self,hoursData):
-        self.DisplayDay(hoursData,self.today)
+        # Might as well create the three rectangles
+        self.d.rectangle([PositionInterpretter.GetTodayTopLeft(),PositionInterpretter.GetTodayBottomRight()],outline='black')
+        self.d.rectangle([PositionInterpretter.GetTomorrowTopLeft(),PositionInterpretter.GetTomorrowBottomRight()],outline='black')
+        self.d.rectangle([PositionInterpretter.GetNextTopLeft(),PositionInterpretter.GetNextBottomRight()],outline='black')
+        self.DisplayDay(hoursData,PositionInterpretter.GetTodayTopLeft(),PositionInterpretter.GetTodayBottomRight())
+
     
-    def DisplayDay(self,hoursData,graph):
+    def DisplayDay(self,hoursData,topleft,bottomright):
         tempDat = np.zeros(dtype=np.float64,shape=len(hoursData[1]))
         humidDat = np.zeros(dtype=np.int8,shape=len(hoursData[1]))
         conditionDat = np.empty(dtype=object,shape=len(hoursData[1]))
         precipDat = np.empty(dtype=object,shape=len(hoursData[1]))
         precipPercentDat = np.zeros(dtype=np.int8,shape=len(hoursData[1]))
-        xAxis = [None] * 24
         xLabels = [None] * 24
         xIndex = 0
+
+        x1 = topleft[0]
+        x2 = bottomright[0]
+        y2 = bottomright[1]
+        tick_spacing = (x2 - x1) / 24
+        
         
         for x in range(0,len(hoursData[1])):
             tempDat[x] = hoursData[1][x][0]
@@ -350,7 +321,6 @@ class WeatherViewer:
             conditionDat[x] = hoursData[1][x][2].lower()
             precipDat[x] = hoursData[1][x][3]
             precipPercentDat[x] = hoursData[1][x][4]
-            xAxis[xIndex] = hoursData[1][x][6]
             if x % 4 == 0:
                 xLabels[xIndex] = str(hoursData[1][x][6])
                 xIndex = xIndex + 1
@@ -358,43 +328,33 @@ class WeatherViewer:
                 xLabels[xIndex] = str("")
                 xIndex = xIndex + 1
 
-        xLabels[len(xLabels)-1] = hoursData[1][len(hoursData[1])-1][6]
+        for j in range(len(xLabels)):
+            x = x1 + j * tick_spacing
+            self.d.line([(x, y2), (x, y2 + 10)], fill='black')
+
+            # Draw the number below the tick
+            self.d.text((x, y2 + 20), xLabels[j], fill='black', anchor='ms', font=self.tickFont)
+
         minmax = self.GetMinMax(hoursData)
-        graph.set_yticks([minmax[0][0], minmax[1][0]])
-        graph.set_yticklabels([str(minmax[0][0]) + "°C", str(minmax[1][0])+"°C"]) 
-        graph.tick_params(axis='y',pad=-3)
+        #graph.set_yticks([minmax[0][0], minmax[1][0]])
+        #raph.set_yticklabels([str(minmax[0][0]) + "°C", str(minmax[1][0])+"°C"]) 
+        #graph.tick_params(axis='y',pad=-3)
         
-        graph.set_xticks(range(len(xAxis)))
-        graph.set_xticklabels(xLabels)
-        self.PlotSunData(graph,hoursData[0][0], hoursData[0][1],xAxis,tempDat)
-        self.DisplayCondition(graph,conditionDat,precipDat,precipPercentDat,tempDat)
-        graph.plot(tempDat, color=self.color_red)
+        #graph.set_xticks(range(len(xAxis)))
+        #graph.set_xticklabels(xLabels)
+        #self.PlotSunData(graph,hoursData[0][0], hoursData[0][1],xAxis,tempDat)
+        #self.DisplayCondition(graph,conditionDat,precipDat,precipPercentDat,tempDat)
+        #graph.plot(tempDat, color=self.color_red)
         
     def DisplayTomorrow(self,tmrDat):
-        self.DisplayDay(tmrDat,self.tomorrowGraph)
+        #self.DisplayDay(tmrDat)
+        a = 0
     
     def DisplayNextDay(self,tmrDat):
-        self.DisplayDay(tmrDat,self.nextGraph)
-
-        self.fig.align_labels()
-        #plt.show()
+        #self.DisplayDay(tmrDat,self.nextGraph)
+        a = 0
 
     def SendToScreen(self):
         # Save figure, with specific DPI and size
-        width_px,height_px=(600,400) # set desired figure size in pixels (width,height)
-        self.fig.set_size_inches(width_px/self.dpi,height_px/self.dpi) # convert pixel dimensions to inches and set figure size accordingly
-
-        #do image conversion
-        imageBuffer = io.BytesIO()
-        #plt.show()
-        plt.savefig(imageBuffer, dpi=self.dpi, format='png') 
-        im = Image.open(imageBuffer)
-        baseImage = im
-        self.Screen.DrawIcon((Point(0,0)),im,True)
-
-        #for x in range(0,5):
-        #    im = baseImage.copy()
-        #    ApplyDither(im)
-        #    self.Screen.DrawIcon((Point(0,0)),im,True)
-        
-        
+        width_px,height_px=(600,448) # set desired figure size in pixels (width,height)
+        self.img.show()   

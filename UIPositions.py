@@ -1,7 +1,7 @@
 from enum import IntEnum
 
-#ScreenWIDTH       = 600
-#ScreenHEIGHT      = 448
+ScreenWIDTH       = 600
+ScreenHEIGHT      = 448
 
 class Positions(IntEnum):
     Today = 0
@@ -20,7 +20,15 @@ class Point:
 
 
 class PositionInterpretter:
-    IconWidth_px = 0
-
-    def __init__(self):
-        topDefault = 0
+    def GetTodayTopLeft():
+        return (25,50)
+    def GetTodayBottomRight():
+        return (575,200)
+    def GetTomorrowTopLeft():
+        return (25,250)
+    def GetTomorrowBottomRight():
+        return (275,420)
+    def GetNextTopLeft():
+        return (325,250)
+    def GetNextBottomRight():
+        return (575,420)

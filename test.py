@@ -1,54 +1,54 @@
-import matplotlib.pyplot as plt
-from matplotlib.offsetbox import OffsetImage, AnnotationBbox
-import numpy as np
+from PIL import Image, ImageDraw, ImageFont
 
-fig = plt.figure()
+# Load the "Times New Roman" font
+font = ImageFont.truetype("times.ttf", 24)
 
-ax1 = fig.add_subplot(211)
-ax1.set_title('Large Plot')
+# Create a new image with white background
+img = Image.new('RGB', (600, 448), 'white')
+d = ImageDraw.Draw(img)
 
-xdata = [1 ,2 ,3 ,4 ,5]
-ydata = [1 ,2 ,3 ,4 ,5]
-labels = ['A', 'B', 'C', 'D', 'E']
+# Create a separate bitmap for the red square
+square_size = 40
+square_img = Image.new('RGB', (square_size, square_size), 'red')
 
-for i in range(len(xdata)):
-    ax1.text(xdata[i], ydata[i]+0.2, labels[i], color='green')
-    
-ax1.plot(xdata,ydata,'bo-', color='blue') # plot line in blue
-ax1.scatter(xdata,ydata,color='black') # plot points in black
+# Define the rectangles and their labels
+rectangles = [(100, 50, 500, 198), (75, 250, 275, 398), (325, 250, 525, 398)]
+labels = ["Graph 1", "Graph 2", "Graph 3"]
 
-# Fill area between line and y=2
-ax1.fill_between([xdata[0], xdata[1]], [ydata[0], ydata[1]], 3, facecolor='gray', alpha=0.5)
+for i, rect in enumerate(rectangles):
+    # Draw a black outline
+    d.rectangle(rect, outline='black')
 
-# Add lines outlining gray shaded box
-ax1.plot([xdata[0], xdata[0]], [ydata[0], 3],'k-') # vertical line at x=xdata[0]
-ax1.plot([xdata[1], xdata[1]], [ydata[1], 3],'k-') # vertical line at x=xdata[1]
+    # Draw ticks along the bottom
+    x1, y1, x2, y2 = rect
+    tick_spacing = (x2 - x1) / 8
+    for j in range(8):
+        x = x1 + j * tick_spacing
+        d.line([(x, y2), (x, y2 + 10)], fill='black')
 
-# Create image
-image = np.zeros((40,40,3))
-image[:,:,0] = 255 # set red channel to max value
+        # Draw the number below the tick
+        d.text((x, y2 + 15), str(j+1), fill='black', anchor='ms', font=font)
 
-# Add image
-imagebox = OffsetImage(image,zoom=.2)
-ab = AnnotationBbox(imagebox,(np.mean([xdata[0], xdata[1]]),(max(ydata)-min(ydata))*((np.mean([ydata[0], ydata[1]])-min(ydata))/(max(ydata)-min(ydata)))+min(ydata)),frameon=False)
-ax1.add_artist(ab)
+    # Draw the label above the rectangle
+    label_x = x1 + (x2 - x1) / 2
+    label_y = y1 - 10
+    d.text((label_x, label_y), labels[i], fill='black', anchor='ms', font=font)
 
-ax2 = fig.add_subplot(223)
-ax2.set_title('Small Plot 1')
-ax2.tick_params(labelsize=12) # set axis label font size to 12
-ax2.title.set_fontsize(14) # set title font size to 14
+    # Paste the red square bitmap into the center of the top rectangle
+    if i == 0:
+        square_x = int(x1 + (x2 - x1) / 2 - square_size / 2)
+        square_y = int(y1 + (y2 - y1) / 2 - square_size / 2)
+        img.paste(square_img, (square_x, square_y))
 
-ax3 = fig.add_subplot(224)
-ax3.set_title('Small Plot 2')
-ax3.tick_params(labelsize=12) # set axis label font size to 12
-ax3.title.set_fontsize(26) # set title font size to 14
+        # Draw a line from halfway to 2/3 on the y-axis, between the 2nd and 3rd tick on the x-axis
+        line_y1 = y1 + (y2 - y1) / 2
+        line_y2 = y1 + (y2 - y1) * 2 / 3
+        line_x1 = line_x2 = x1 + tick_spacing * 2
+        d.line([(line_x1, line_y1), (line_x2, line_y2)], fill='black')
 
-plt.subplots_adjust(hspace=0.5)
+        # Draw a blue polygon with 6 points above the line
+        polygon_points = [(x1, y1), (x2, y1), (x2, line_y1), (line_x1, line_y1), (line_x1, y1), (x1, y1)]
+        d.polygon(polygon_points, fill='blue')
 
-# Save figure
-dpi = 100 # set desired dpi (dots per inch)
-width_px,height_px=(600,400) # set desired figure size in pixels (width,height)
-fig.set_size_inches(width_px/dpi,height_px/dpi) # convert pixel dimensions to inches and set figure size accordingly
-fig.savefig('figure.png', dpi=dpi) # save figure as png with specified dpi
-
-plt.show()
+# Display the image
+img.show()
