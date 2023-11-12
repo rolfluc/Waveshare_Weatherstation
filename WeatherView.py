@@ -298,7 +298,8 @@ class WeatherViewer:
 
     def GetLinePoint(self,yDat,ytop,ybot,ytopVal,ybotVal,index,xspacing,xStart):
         xPos = int(xStart + index*xspacing)
-        yPos = int((abs(yDat) / (ytopVal - ybotVal)) * (ytop - ybot) + ybot)
+        percent = abs(yDat - ybotVal) / (ytopVal - ybotVal)
+        yPos = int(percent * (ytop - ybot) + ybot)
         return (xPos,yPos)
 
     
