@@ -217,14 +217,14 @@ class WeatherViewer:
         return fraction
 
 
-    def PlotSunData(self,graph,rise,set,xHours,yDat):
+    def PlotSunData(self,topleft,bottomright,rise,set,xHours,xspan):
         firstHour = xHours[0]
         displayBoth = True
         riseTime = self.GetHourFractionFromTime(rise)
         setTime = self.GetHourFractionFromTime(set)
-        firstPlotHour  = 0
-        plotX = [None] * 0
-        plotY = [None] * 0
+        riseFound = False
+        riseX = 0
+        setX = 0
 
         #if the set time is before the first hour, do not display
         if (setTime < firstHour):
@@ -233,64 +233,28 @@ class WeatherViewer:
         #if the rise time is after the first hour on the plot, find the first hour to plot on
         if(riseTime < firstHour):
             displayBoth = False
-            firstPlotHour = firstHour
         else:
             displayBoth = True
-            firstPlotHour = riseTime
 
-        #plotIndex = int(firstPlotHour)
-        plotIndex = 0
-        currentPlot = firstPlotHour
-        plotDistance = 24
-        #find the closest x data from xHours, and grab the Y data
-        #
+        # find the x target, and just draw the line from top to bottom.
+        # Iterate over the list until an hour greater is found. Once greater, find the fraction in the middle, 
+        # and use xspan to find the exact x location.
         for x in range(0,len(xHours)):
-            if abs(xHours[x] - firstPlotHour) < plotDistance:
-                plotDistance = abs(xHours[x] - firstPlotHour)
-                currentPlot = xHours[x]
-                plotIndex = x
-        plotX.append(plotIndex)
-        plotY.append(yDat[plotIndex])
-        plotIndex += 1
-        #from here, grab each hour, and the y data, until the setTime is reached
-        while currentPlot <= int(setTime) and plotIndex < len(xHours):
-            if xHours[plotIndex] < int(setTime):
-                currentPlot = xHours[plotIndex]
-                plotX.append(plotIndex)
-                plotY.append(yDat[plotIndex])
-                plotIndex += 1
-            else:
+            if(displayBoth):
+                if(xHours[x] > riseTime and not riseFound):
+                    if x == 0:
+                        print("Error condition")
+                    riseX = xspan * x + ((riseTime - int(riseTime)) * xspan) + topleft[0]
+                    riseFound = True
+            if(xHours[x] > setTime):
+                if x == 0:
+                    print("Error condition")
+                setX = xspan * (x-1) + ((setTime - int(setTime)) * xspan) + topleft[0]
                 break
 
-
-        #graph.fill_between(plotX,plotY,min(yDat),facecolor='gray',alpha=0.5)
-        #TODO a lot of the above is now completely pointless, as just two yellow lines suffice
-        #leaving for posterity
-
-        #If nothing is populated, do not show.
-        #if one thing is populated, do not care.
-
-        #TODO get the slope of the line between [0] + 1, and end + end+1, and draw the y to that point, as a percentage of the additional.
-        additionalXRise = riseTime - int(riseTime)
-        additionalXSet = setTime - int(setTime)
-
-        minY = min(yDat)
-        maxY = max(yDat)
-        delta = maxY - minY
-
-        if len(plotY) > 1:
-            additionalYRise = ((plotY[1] - plotY[0]) / delta) * additionalXRise/2
-            additionalYSet = ((plotY[len(plotY)-2] - plotY[len(plotY)-1]) / delta)
-        else:
-            additionalYRise = 0
-            additionalYSet = 0
-
-        if(len(plotX) > 1):
-            if(displayBoth is True):
-                yTarget = (abs(plotY[0]) - additionalYRise - minY) / delta
-                graph.axvline(x=plotX[0]+ additionalXRise, ymin=0, ymax=max(yTarget,0.025),color=self.color_orange)
-            yTarget = (abs(plotY[len(plotY)-1]) - additionalYSet - minY) / delta
-            graph.axvline(x=plotX[len(plotX)-1] + additionalXSet, ymin=0, ymax=max(yTarget,0.025),color=self.color_orange)
+        if(displayBoth is True):
+            self.d.line([(riseX,topleft[1]),(riseX,bottomright[1])],fill='blue')
+        self.d.line([(setX,topleft[1]),(setX,bottomright[1])],fill='blue')
 
     def DisplayToday(self,hoursData):
         self.d.rectangle([PositionInterpretter.GetTodayTopLeft(),PositionInterpretter.GetTodayBottomRight()],outline='black')
@@ -311,6 +275,7 @@ class WeatherViewer:
         precipPercentDat =  [None] * len(hoursData[1])
         xLabels = [None] * len(hoursData[1])
         points = [None] * len(hoursData[1])
+        hourDat = [None] * len(hoursData[1])
         xIndex = 0
 
         x1 = topleft[0]
@@ -326,6 +291,7 @@ class WeatherViewer:
             conditionDat[x] = hoursData[1][x][2].lower()
             precipDat[x] = hoursData[1][x][3]
             precipPercentDat[x] = hoursData[1][x][4]
+            hourDat[x] = hoursData[1][x][6]
             if x % 4 == 0:
                 xLabels[xIndex] = str(hoursData[1][x][6])
                 xIndex = xIndex + 1
@@ -361,6 +327,8 @@ class WeatherViewer:
             index += 1 
         for x in range(0,len(points) - 1):
             self.d.line([points[x],points[x+1]],fill='black')
+
+        self.PlotSunData(topleft,bottomright,hoursData[0][0],hoursData[0][1],hourDat,tick_spacing)
 
         
     def DisplayTomorrow(self,tmrDat):
