@@ -32,3 +32,5 @@ class PositionInterpretter:
         return (325,250)
     def GetNextBottomRight():
         return (575,420)
+    def GetBigDifference():
+        return PositionInterpretter.GetTodayBottomRight()[0] - PositionInterpretter.GetTodayTopLeft()[0]

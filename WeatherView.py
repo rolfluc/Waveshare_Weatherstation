@@ -4,7 +4,6 @@ from ScreenInterface import *
 import numpy as np
 from datetime import datetime
 from PIL import Image
-import io
 from Dither import *
 
 class WeatherViewer:
@@ -22,20 +21,25 @@ class WeatherViewer:
     tickFont = ImageFont.truetype("times.ttf", 12)
     titlefont = ImageFont.truetype("times.ttf", 24)
 
-    color_blue = (0,0,255/255)
-    color_green = (0,255/255,0)
-    color_red = (255/255,0,0)
-    color_white = (255/255,255/255,255/255)
-    color_yellow = (255/255,255/255,0)
-    color_orange = (255/255,128/255,0)
-    alphaBlueDisplayColor = (128/255,128/255,255/255)
+    color_blue = (0,0,255)
+    color_green = (0,255,0)
+    color_red = (255,0,0)
+    color_white = (255,255,255)
+    color_yellow = (255,255,0)
+    color_orange = (255,128,0)
     color_black = (0,0,0)
-    rainNp = ''
-    snowNp = ''
-    FRainNp = ''
-    fogNp = ''
-    hailNp = ''
-    ThunderstormNp = ''
+    rainImage = ''
+    rainImageSmall = ''
+    snowImage = ''
+    snowImageSmall = ''
+    FRainImage = ''
+    FRainImageSmall = ''
+    ThunderstormImage = ''
+    ThunderstormImageSmall = ''
+    fogImage = ''
+    fogImageSmall = ''
+    hailImage = ''
+    hailImageSmall = ''
     heute = 0
     morgan = 0
     ubermorgan = 0
@@ -51,35 +55,23 @@ class WeatherViewer:
         if self.ubermorgan > 6:
             self.ubermorgan = 0
 
-        #rainImage = Image.open('rain_smol.bmp')
-        #tmpNp = np.array(rainImage)
-        #self.rainNp = np.zeros(tmpNp.shape[:2], dtype=np.bool8)
-        #self.rainNp[tmpNp[..., 0] < 0.5] = True
+        self.rainImage = Image.open('rain_smol.bmp')
+        self.rainImageSmall = self.rainImage.resize((20,20),Image.Resampling.LANCZOS)
 
-        #snowImage = Image.open('Snow_smol.bmp')
-        #tmpNp = np.array(snowImage)
-        #self.snowNp = np.zeros(tmpNp.shape[:2], dtype=np.bool8)
-        #self.snowNp[tmpNp[..., 0] < 0.5] = True
+        self.snowImage = Image.open('Snow_smol.bmp')
+        self.snowImageSmall = self.snowImage.resize((20,20),Image.Resampling.LANCZOS)
 
-        #FRainImage = Image.open('FreezingRain.bmp')
-        #tmpNp = np.array(FRainImage)
-        #self.FRainNp = np.zeros(tmpNp.shape[:2], dtype=np.bool8)
-        #self.FRainNp[tmpNp[..., 0] < 0.5] = True
+        self.FRainImage = Image.open('FreezingRain.bmp')
+        self.FRainImageSmall = self.FRainImage.resize((20,20),Image.Resampling.LANCZOS)
 
-        #ThunderstormImage = Image.open('Thunder_smol.bmp')
-        #tmpNp = np.array(ThunderstormImage)
-        #self.ThunderstormNp = np.zeros(tmpNp.shape[:2], dtype=np.bool8)
-        #self.ThunderstormNp[tmpNp[..., 0] < 0.5] = True
+        self.ThunderstormImage = Image.open('Thunder_smol.bmp')
+        self.ThunderstormImageSmall = self.ThunderstormImage.resize((20,20),Image.Resampling.LANCZOS)
 
-        #fogImage = Image.open('fog_smol.bmp')
-        #tmpNp = np.array(fogImage)
-        #self.fogNp = np.zeros(tmpNp.shape[:2], dtype=np.bool8)
-        #self.fogNp[tmpNp[..., 0] < 0.5] = True
+        self.fogImage = Image.open('fog_smol.bmp')
+        self.fogImageSmall = self.fogImage.resize((20,20),Image.Resampling.LANCZOS)
 
-        #hailImage = Image.open('Hail_smol.bmp')
-        #tmpNp = np.array(hailImage)
-        #self.hailNp = np.zeros(tmpNp.shape[:2], dtype=np.bool8)
-        #self.hailNp[tmpNp[..., 0] < 0.5] = True
+        self.hailImage = Image.open('Hail_smol.bmp')
+        self.hailImageSmall = self.hailImage.resize((20,20),Image.Resampling.LANCZOS)
         
     def DoSleep(self):
         self.Screen.SleepScreen()
@@ -106,32 +98,28 @@ class WeatherViewer:
             middleX = middleX - 0.5
         return ((middleX,yVal))
 
-    def DisplayRain(self,graph,xPositions,yPositions):
-        self.DrawOnGraph(xPositions,yPositions,self.rainNp,graph)
+    def DisplayRain(self,x,y, doSmall):
+        self.img.paste(self.rainImageSmall if doSmall else self.rainImage, (x,y))
         
-    def DisplaySnow(self,graph,xPositions,yPositions):
-        self.DrawOnGraph(xPositions,yPositions,self.snowNp,graph)
+    def DisplaySnow(self,x,y, doSmall):
+        self.img.paste(self.snowImageSmall if doSmall else self.snowImage, (x,y))
 
-    def DisplayIce(self,graph,xPositions,yPositions):
-        self.DisplayFreezingRain(graph,xPositions,yPositions)
+    def DisplayIce(self,x,y, doSmall):
+        self.img.paste(self.hailImageSmall if doSmall else self.hailImage, (x,y))
 
-    def DisplayFreezingRain(self,graph,xPositions,yPositions):
-        self.DrawOnGraph(xPositions,yPositions,self.FRainNp,graph)
+    def DisplayFreezingRain(self,x,y, doSmall):
+        self.img.paste(self.FRainImageSmall if doSmall else self.FRainImage, (x,y))
 
-    def DisplayThunderstorm(self,graph,xPositions,yPositions):
-        self.DrawOnGraph(xPositions,yPositions,self.ThunderstormNp,graph)
+    def DisplayThunderstorm(self,x,y, doSmall):
+        self.img.paste(self.ThunderstormImageSmall if doSmall else self.ThunderstormImage, (x,y))
 
-    def DisplayFog(self,graph,xPositions,yPositions):
-        self.DrawOnGraph(xPositions,yPositions,self.fogNp,graph)
+    def DisplayFog(self,x,y, doSmall):
+        self.img.paste(self.fogImageSmall if doSmall else self.fogImage, (x,y))
 
-    def DisplayHail(self,graph,xPositions,yPositions):
-        self.DrawOnGraph(xPositions,yPositions,self.hailNp,graph)
-
-    def DisplayCondition(self,graph,conditionArray,precipDat,precipChance,yDat):
+    def DisplayCondition(self,conditionArray,precipDat,precipChance, topleft, bottomright):
+        xLength_Tick = (bottomright[0] - topleft[0]) / 24
         isOpen = False
-        yDelta = max(yDat) - min(yDat)
-        conditionXPositions = []*0
-        conditionYPositions = []*0
+        startPosIndex = 0
         for index in range(0,len(conditionArray)):
             condFound = False
             condition = conditionArray[index]
@@ -140,9 +128,6 @@ class WeatherViewer:
             if ("snow" in condition): #Snow intentionally before rain
                 condFound = True
                 self.trackingCondition = self.DisplaySnow
-            elif ("hail" in condition):
-                condFound = True
-                self.trackingCondition = self.DisplayHail
             elif ("freezing" in condition):
                 condFound = True
                 self.trackingCondition = self.DisplayFreezingRain
@@ -159,42 +144,24 @@ class WeatherViewer:
                 condFound = True
                 self.trackingCondition = self.DisplayFog
             if(condFound):
-                conditionXPositions.append(index)
                 if(not isOpen):
                     #found a condition, and not currently tracking a condition
                     isOpen = True
-                    graph.axvline(x=index, ymin=min(((yDat[index]-min(yDat)) / yDelta) + 0.025,0.95), ymax=1,color=self.color_blue)
-                #otherwise, we want to add the other y axis
+                    startPosIndex = index
+
             else:
                 if(isOpen):
                     #no longer seeing the condition, drop out
                     isOpen = False
-                    conditionXPositions.append(index)
-                    graph.axvline(x=index, ymin=min(((yDat[index]-min(yDat)) / yDelta) + 0.025,0.95), ymax=1,color=self.color_blue)
-                    for xpos in conditionXPositions:
-                        conditionYPositions.append(yDat[xpos])
-                    #draw existing shading, reset
-                    graph.fill_between(conditionXPositions, conditionYPositions, max(yDat), facecolor=self.color_blue, alpha=0.5)   
-                    if len(conditionXPositions) > 1:
-                        self.trackingCondition(graph,conditionXPositions,yDat)
-
-                    self.trackingCondition = ''
-                    conditionXPositions = []*0
-                    conditionYPositions = []*0
-                else:
-                    #ensure tracking condition is cleared
-                    self.trackingCondition = ''
-                # If no condition found, and not tracking one, no worries!
-        #if didn't close the last one, end here:
-        if(isOpen):
-            graph.axvline(x=len(conditionArray)-1, ymin=min(((yDat[len(conditionArray)-1]-min(yDat)) / yDelta),0.95), ymax=1,color=self.color_blue)
-            if len(conditionXPositions) > 1:
-                self.trackingCondition(graph,conditionXPositions,yDat)
-        # now draw
-        for xpos in conditionXPositions:
-            conditionYPositions.append(yDat[xpos])
-        graph.fill_between(conditionXPositions, conditionYPositions, max(yDat), facecolor=self.color_blue, alpha=0.5)
-                    
+                    rectStartX = int(topleft[0] + startPosIndex * xLength_Tick)
+                    width = int((index - startPosIndex) * xLength_Tick)
+                    self.d.rectangle([(rectStartX,topleft[1]),(rectStartX + width,topleft[1] + 15)],fill=self.color_blue)
+                    if (PositionInterpretter.GetBigDifference() == bottomright[0] - topleft[0]):
+                        imageX = int(((2*rectStartX + width) / 2) - 20)
+                        self.trackingCondition(imageX,topleft[1] + 16,False)
+                    else:
+                        imageX = int(((2*rectStartX + width) / 2) - 9)
+                        self.trackingCondition(imageX,topleft[1] + 16,True)
 
     def GetMinMax(self,hoursData):
         minVal = 200
@@ -255,8 +222,8 @@ class WeatherViewer:
                 break
 
         if(displayBoth is True):
-            self.d.line([(riseX,topleft[1]),(riseX,bottomright[1])],fill='blue')
-        self.d.line([(setX,topleft[1]),(setX,bottomright[1])],fill='blue')
+            self.d.line([(riseX,topleft[1]),(riseX,bottomright[1])],fill=self.color_orange)
+        self.d.line([(setX,topleft[1]),(setX,bottomright[1])],fill=self.color_orange)
 
     def GetLinePoint(self,yDat,ytop,ybot,ytopVal,ybotVal,index,xspacing,xStart):
         xPos = int(xStart + index*xspacing)
@@ -299,51 +266,52 @@ class WeatherViewer:
 
         for j in range(len(xLabels)):
             x = x1 + j * tick_spacing
-            self.d.line([(x, y2), (x, y2 + 10)], fill='black')
+            self.d.line([(x, y2), (x, y2 + 10)], fill=self.color_black, width=1)
 
             # Draw the number below the tick
-            self.d.text((x, y2 + 20), xLabels[j], fill='black', anchor='ms', font=self.tickFont)
+            self.d.text((x, y2 + 20), xLabels[j], fill=self.color_black, anchor='ms', font=self.tickFont)
         yAxisTickLeft = x1 - 5
         yAxisTickRight = x1 + 1
         topTick = y1 + 5
         botTick = y2 - 5
         midTick = (y2 + y1) / 2
-        self.d.line([(yAxisTickLeft,topTick),(yAxisTickRight,topTick)],fill='black')
-        self.d.line([(yAxisTickLeft,midTick),(yAxisTickRight,midTick)],fill='black')
-        self.d.line([(yAxisTickLeft,botTick),(yAxisTickRight,botTick)],fill='black')
+        self.d.line([(yAxisTickLeft,topTick),(yAxisTickRight,topTick)],fill=self.color_black,width=1)
+        self.d.line([(yAxisTickLeft,midTick),(yAxisTickRight,midTick)],fill=self.color_black,width=1)
+        self.d.line([(yAxisTickLeft,botTick),(yAxisTickRight,botTick)],fill=self.color_black,width=1)
 
+        self.DisplayCondition(conditionDat,precipDat,precipPercentDat,topleft,bottomright)
         minmax = self.GetMinMax(hoursData)
         minTemp = minmax[0][0]
         midTemp = (minmax[0][0]+minmax[1][0])/2
         maxTemp = minmax[1][0]
-        self.d.text((yAxisTickLeft - 6, topTick-1), str(maxTemp).rjust(4), fill='black', anchor='ms', font=self.tickFont)
-        self.d.text((yAxisTickLeft - 6, botTick-1), str(minTemp).rjust(4), fill='black', anchor='ms', font=self.tickFont)
-        self.d.text((yAxisTickLeft - 6, midTick-1), "{:.1f}".format(midTemp).rjust(4), fill='black', anchor='ms', font=self.tickFont)
+        self.d.text((yAxisTickLeft - 6, topTick-1), str(maxTemp).rjust(4), fill=self.color_black, anchor='ms', font=self.tickFont)
+        self.d.text((yAxisTickLeft - 6, botTick-1), str(minTemp).rjust(4), fill=self.color_black, anchor='ms', font=self.tickFont)
+        self.d.text((yAxisTickLeft - 6, midTick-1), "{:.1f}".format(midTemp).rjust(4), fill=self.color_black, anchor='ms', font=self.tickFont)
         index = 0 
         for each in tempDat:
             points[index] = self.GetLinePoint(each,y1+5,y2-5,maxTemp,minTemp,index,tick_spacing,x1)
             index += 1 
         for x in range(0,len(points) - 1):
-            self.d.line([points[x],points[x+1]],fill='black')
+            self.d.line([points[x],points[x+1]],fill=self.color_black,width=2)
 
         self.PlotSunData(topleft,bottomright,hoursData[0][0],hoursData[0][1],hourDat,tick_spacing)
+        
 
     def DisplayToday(self,hoursData):
-        self.d.rectangle([PositionInterpretter.GetTodayTopLeft(),PositionInterpretter.GetTodayBottomRight()],outline='black')
+        self.d.rectangle([PositionInterpretter.GetTodayTopLeft(),PositionInterpretter.GetTodayBottomRight()],outline=self.color_black)
         self.DisplayDay(hoursData,PositionInterpretter.GetTodayTopLeft(),PositionInterpretter.GetTodayBottomRight())
-        self.d.text(((PositionInterpretter.GetTodayTopLeft()[0] + PositionInterpretter.GetTodayBottomRight()[0]) / 2, PositionInterpretter.GetTodayTopLeft()[1] - 10), self.daysOfTheWeek[self.heute], fill='black', anchor='ms', font=self.titlefont)
+        self.d.text(((PositionInterpretter.GetTodayTopLeft()[0] + PositionInterpretter.GetTodayBottomRight()[0]) / 2, PositionInterpretter.GetTodayTopLeft()[1] - 5), self.daysOfTheWeek[self.heute], fill=self.color_black, anchor='ms', font=self.titlefont)
         
     def DisplayTomorrow(self,tmrDat):
-        self.d.rectangle([PositionInterpretter.GetTomorrowTopLeft(),PositionInterpretter.GetTomorrowBottomRight()],outline='black')
+        self.d.rectangle([PositionInterpretter.GetTomorrowTopLeft(),PositionInterpretter.GetTomorrowBottomRight()],outline=self.color_black)
         self.DisplayDay(tmrDat,PositionInterpretter.GetTomorrowTopLeft(),PositionInterpretter.GetTomorrowBottomRight())
-        self.d.text(((PositionInterpretter.GetTomorrowTopLeft()[0] + PositionInterpretter.GetTomorrowBottomRight()[0]) / 2, PositionInterpretter.GetTomorrowTopLeft()[1] - 10), self.daysOfTheWeek[self.morgan], fill='black', anchor='ms', font=self.titlefont)
+        self.d.text(((PositionInterpretter.GetTomorrowTopLeft()[0] + PositionInterpretter.GetTomorrowBottomRight()[0]) / 2, PositionInterpretter.GetTomorrowTopLeft()[1] - 5), self.daysOfTheWeek[self.morgan], fill=self.color_black, anchor='ms', font=self.titlefont)
     
     def DisplayNextDay(self,tmrDat):
-        self.d.rectangle([PositionInterpretter.GetNextTopLeft(),PositionInterpretter.GetNextBottomRight()],outline='black')
+        self.d.rectangle([PositionInterpretter.GetNextTopLeft(),PositionInterpretter.GetNextBottomRight()],outline=self.color_black)
         self.DisplayDay(tmrDat,PositionInterpretter.GetNextTopLeft(),PositionInterpretter.GetNextBottomRight())
-        self.d.text(((PositionInterpretter.GetNextTopLeft()[0] + PositionInterpretter.GetNextBottomRight()[0]) / 2, PositionInterpretter.GetNextTopLeft()[1] - 10), self.daysOfTheWeek[self.ubermorgan], fill='black', anchor='ms', font=self.titlefont)
+        self.d.text(((PositionInterpretter.GetNextTopLeft()[0] + PositionInterpretter.GetNextBottomRight()[0]) / 2, PositionInterpretter.GetNextTopLeft()[1] - 5), self.daysOfTheWeek[self.ubermorgan], fill=self.color_black, anchor='ms', font=self.titlefont)
 
 
     def SendToScreen(self):
-        # Save figure, with specific DPI and size
         self.img.show()   
