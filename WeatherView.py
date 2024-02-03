@@ -162,6 +162,16 @@ class WeatherViewer:
                     else:
                         imageX = int(((2*rectStartX + width) / 2) - 9)
                         self.trackingCondition(imageX,topleft[1] + 16,True)
+        if (isOpen):
+            rectStartX = int(topleft[0] + startPosIndex * xLength_Tick)
+            width = int((24 - startPosIndex) * xLength_Tick)
+            self.d.rectangle([(rectStartX,topleft[1]),(rectStartX + width,topleft[1] + 15)],fill=self.color_blue)
+            if (PositionInterpretter.GetBigDifference() == bottomright[0] - topleft[0]):
+                imageX = int(((2*rectStartX + width) / 2) - 20)
+                self.trackingCondition(imageX,topleft[1] + 16,False)
+            else:
+                imageX = int(((2*rectStartX + width) / 2) - 9)
+                self.trackingCondition(imageX,topleft[1] + 16,True)
 
     def GetMinMax(self,hoursData):
         minVal = 200
