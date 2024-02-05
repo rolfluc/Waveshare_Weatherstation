@@ -54,23 +54,10 @@ class ScreenInterface:
         if isPi:
             self.epd.sleep()
 
-    def DrawImage(self):
+    def DrawImage(self, image):
+        self.Himage = image
         if isPi:
             self.epd.display(self.epd.getbuffer(self.Himage))
         else:
             self.Himage.show()
-
-    def DrawIcon(self,position,dataBuffer, doDraw):
-        #TODO this is not defined. Examples show how to do a full image, not a 
-        #epd.display(epd.getbuffer(Himage))
-        #Himage = Image.open(os.path.join(picdir, '5in65f0.bmp'))
-        self.Himage.paste(dataBuffer,box=(position.x,position.y))
-        #if isPi:
-        #    if(doDraw):
-        #        self.DrawImage()
-        #else:
-            #Assumes the databuffer is actually a PIL image
-        #    self.Himage.paste(dataBuffer,box=(position.x,position.y))
-        if doDraw:
-            self.DrawImage()
             

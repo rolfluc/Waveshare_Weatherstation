@@ -18,7 +18,7 @@ class WeatherViewer:
     Humidity_SaturatedHeight_px = 100
     img = Image.new('RGB', (ScreenWIDTH, ScreenHEIGHT), 'white')
     d = ImageDraw.Draw(img)
-    tickFont = ImageFont.truetype("times.ttf", 12)
+    tickFont = ImageFont.truetype("times.ttf", 16)
     titlefont = ImageFont.truetype("times.ttf", 24)
 
     color_blue = (0,0,255)
@@ -232,8 +232,8 @@ class WeatherViewer:
                 break
 
         if(displayBoth is True):
-            self.d.line([(riseX,topleft[1]),(riseX,bottomright[1])],fill=self.color_orange)
-        self.d.line([(setX,topleft[1]),(setX,bottomright[1])],fill=self.color_orange)
+            self.d.line([(riseX,topleft[1]),(riseX,bottomright[1])],fill=self.color_orange, width=2)
+        self.d.line([(setX,topleft[1]),(setX,bottomright[1])],fill=self.color_orange, width=2)
 
     def GetLinePoint(self,yDat,ytop,ybot,ytopVal,ybotVal,index,xspacing,xStart):
         xPos = int(xStart + index*xspacing)
@@ -279,7 +279,7 @@ class WeatherViewer:
             self.d.line([(x, y2), (x, y2 + 10)], fill=self.color_black, width=1)
 
             # Draw the number below the tick
-            self.d.text((x, y2 + 20), xLabels[j], fill=self.color_black, anchor='ms', font=self.tickFont)
+            self.d.text((x, y2 + 22), xLabels[j], fill=self.color_black, anchor='ms', font=self.tickFont)
         yAxisTickLeft = x1 - 5
         yAxisTickRight = x1 + 1
         topTick = y1 + 5
@@ -294,9 +294,9 @@ class WeatherViewer:
         minTemp = minmax[0][0]
         midTemp = (minmax[0][0]+minmax[1][0])/2
         maxTemp = minmax[1][0]
-        self.d.text((yAxisTickLeft - 6, topTick-1), str(maxTemp).rjust(4), fill=self.color_black, anchor='ms', font=self.tickFont)
-        self.d.text((yAxisTickLeft - 6, botTick-1), str(minTemp).rjust(4), fill=self.color_black, anchor='ms', font=self.tickFont)
-        self.d.text((yAxisTickLeft - 6, midTick-1), "{:.1f}".format(midTemp).rjust(4), fill=self.color_black, anchor='ms', font=self.tickFont)
+        self.d.text((yAxisTickLeft - 9, topTick-1), str(maxTemp).rjust(4), fill=self.color_black, anchor='ms', font=self.tickFont)
+        self.d.text((yAxisTickLeft - 9, botTick-1), str(minTemp).rjust(4), fill=self.color_black, anchor='ms', font=self.tickFont)
+        self.d.text((yAxisTickLeft - 9, midTick-1), "{:.1f}".format(midTemp).rjust(4), fill=self.color_black, anchor='ms', font=self.tickFont)
         index = 0 
         for each in tempDat:
             points[index] = self.GetLinePoint(each,y1+5,y2-5,maxTemp,minTemp,index,tick_spacing,x1)
@@ -324,4 +324,4 @@ class WeatherViewer:
 
 
     def SendToScreen(self):
-        self.img.show()   
+        self.Screen.DrawImage(self.img)
