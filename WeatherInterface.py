@@ -87,8 +87,9 @@ class Weather:
                 hourData = next["hours"][hourIndex]
                 times.append(self.ExtractInfo(hourData,hourIndex))
         else:
-            for hourIndex in range(0,24):
-                hourData = day["hours"][hourIndex]
+            hours = day["hours"]
+            for hourIndex in range(0,len(hours)):
+                hourData = hours[hourIndex]
                 times.append(self.ExtractInfo(hourData,hourIndex))
         rise = day["sunrise"]
         set = day["sunset"]
